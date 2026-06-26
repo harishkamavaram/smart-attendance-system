@@ -1,9 +1,13 @@
+```gitignore
 # ========================================
 # Operating System
 # ========================================
 .DS_Store
 Thumbs.db
 Desktop.ini
+.AppleDouble
+.LSOverride
+ehthumbs.db
 
 # ========================================
 # IDE / Editors
@@ -11,21 +15,36 @@ Desktop.ini
 .idea/
 .vscode/
 *.iml
+*.ipr
+*.iws
 .project
 .classpath
+.factorypath
 .settings/
+.apt_generated
+.springBeans
+.sts4-cache
+.metadata/
 
 # ========================================
 # Java / Maven
 # ========================================
 **/target/
-**/logs/
-*.log
+!**/src/main/**/target/
+!**/src/test/**/target/
+.metadata/
+**/.metadata/
 
-# Maven Wrapper (keep these!)
+HELP.md
+
+*.log
+**/logs/
+
+# Maven Wrapper (Keep these)
 #!**/.mvn/
 #!**/mvnw
 #!**/mvnw.cmd
+
 
 # ========================================
 # Node.js / React
@@ -48,17 +67,11 @@ Desktop.ini
 **/venv/
 
 # ========================================
-# Environment Files
+# Environment Variables
 # ========================================
 .env
 .env.*
 !.env.example
-
-# ========================================
-# Build Outputs
-# ========================================
-**/build/
-**/out/
 
 # ========================================
 # Docker
@@ -69,16 +82,11 @@ docker-data/
 # Temporary Files
 # ========================================
 *.tmp
-*.swp
 *.bak
+*.swp
+```
 
 # ========================================
-# Mac/Linux
+# Application Properties 
 # ========================================
-.AppleDouble
-.LSOverride
-
-# ========================================
-# Windows
-# ========================================
-ehthumbs.db
+**/application.properties
