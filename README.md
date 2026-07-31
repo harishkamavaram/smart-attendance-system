@@ -1,4 +1,4 @@
-# Smart Attendance Management System
+# Smart Attendance Management System(FaceTrack)
 
 An AI-powered, microservices-based attendance management system that uses facial recognition to automate attendance tracking. The project is built using a modern distributed architecture with React, Spring Boot, and FastAPI.
 

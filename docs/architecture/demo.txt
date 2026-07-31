@@ -1,0 +1,38 @@
+======================================================================================
+Client requests a protected resource.
+Gateway checks the accessToken.
+If the access token is valid → forward the request.
+If the access token is missing or expired → return 401 Unauthorized.
+The client then calls /auth/refresh.
+The Auth Service validates the refreshToken, issues new cookies, and returns success.
+The client retries the original request.
+    --------------------------------------------
+                    Client
+                        │
+                        ├── GET /api/v1/data
+                        │
+                        ▼
+                    Gateway
+                        │
+                        ├── access token valid?
+                        │      │
+                        │      ├── Yes → Forward request
+                        │      │
+                        │      └── No → 401 Unauthorized
+                        │
+                        ▼
+                    Client
+                        │
+                        ├── POST /auth/refresh
+                        │
+                        ▼
+                    Auth Service
+                        │
+                        ├── Validate refresh token
+                        ├── Generate new access token
+                        ├── Generate new refresh token (if rotating)
+                        └── Set new HttpOnly cookies
+                        │
+                        ▼
+            Client retries original request
+======================================================================================

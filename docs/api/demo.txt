@@ -1,0 +1,47 @@
+Folder Structure Follewed in API Development
+        src/main/java
+        └── com.facetrack
+            ├── controller
+            ├── service
+            ├── repository
+            ├── models
+            ├── dto
+            ├── exception
+            │     ├── ApiError.java
+            │     ├── GlobalExceptionHandler.java
+            │     ├── ResourceNotFoundException.java
+            │     ├── DuplicateResourceException.java
+            │     └── BadRequestException.java
+            └── config
+=================================================================
+For admin/register
+    {
+        "institute": {
+            "name": "ABC Engineering College",
+            "instituteCode": 1001,
+            "email": "admin@abcengineering.edu",
+            "mobileNumber": "9876543210",
+            "address": "Bangalore, Karnataka, India"
+        },
+        "superAdmin": {
+            "name": "Rahul Sharma",
+            "email": "myselfentrepreneur0007@gmail.com",
+            "password": "Admin@123"
+        }
+    }
+----------------INVALID DATA-------------------------------------
+    {
+    "institute": {
+        "name": "ABC College",
+        "instituteCode": 101,
+        "email": "abcgmail.com",
+        "mobileNumber": "9876543210",
+        "address": "Hyderabad, Telangana"
+    },
+    "superAdmin": {
+        "name": "Harish",
+        "email": "admin@example.com",
+        "password": "Admin@123"
+    }
+    }
+=================================================================
