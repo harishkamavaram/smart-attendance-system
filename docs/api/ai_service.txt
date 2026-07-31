@@ -1,0 +1,41 @@
+{
+  "students": [
+    {
+      "studentId": 1,
+      "studentName": "Elon Musk",
+      "imageUrls": [
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS0I7eAi5benwsroKPz83lpex3pOAvqK913rNofDbszug&s=10",
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSm0TLOeEjzfP3-gNkTMMmok8vzeGXm_BNcQ4giaVz-lw&s",
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSgHFCXLRuV1zMcPlRXejrNMXUkNJkG6tA5di9RupufAQ&s=10"
+      ]
+    },
+    {
+      "studentId": 2,
+      "studentName": "Jeff Bezos",
+      "imageUrls": [
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJkwdqjcJI8ZnLe5SzIOlsIovZGwlYIGckt5e0X8P80w&s=10",
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvpYwGh4QNw4mrkyK398W6VM0RLFTl1u_ezqIstJlwZQ&s=10"
+      ]
+    },
+    {
+      "studentId": 3,
+      "studentName": "Mark Zuckerberg",
+      "imageUrls": [
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSIEzMhMTlEEwsCmQq7Q4Dey2MjOG2TyPQyVrQ2SRAgIJ6Pt8kVB4btqddPsyz2tJz9HqUZJI4O6D6cO2EB31yC9N0vtf6bLVZKeRnFCaxc1w&s=10",
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8cQBsDRB-ongl73nqRg-ODd-p2jT4KwCRFgxY79W3xdUwYrEVcSwQ-1niW7QBMQqkxGjxqeOsehzZLpIUaeRRpR378sWojo68Uleazv3w&s=10"
+      ]
+    }
+  ]
+}
+========================================================================================================
+{
+  "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0jv5npd7nNzFOmBwWnXd_x7_TLVGDQ4lCtAw5qJdWeA&s=10"
+}
+------------------------------------------------------------------------------------------------------------------------
+{
+  "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5_BoUc3Bqa9Jhx8ciFPXNhSbuNQ8cfFWl2kYaQQWXwA&s=10"
+}
+---------------------------------------------------------------------------------------------------------------------------
+BASE_URL FOR IMAGES UPLOADED
+https://harishkamavaram--smart-attendance-ai-fastapi-app-dev.modal.run/api/v1/fr/images
+https://harishkamavaram--smart-attendance-ai-fastapi-app.modal.run/api/v1/fr/images

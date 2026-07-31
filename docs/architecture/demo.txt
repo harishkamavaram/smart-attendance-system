@@ -36,3 +36,90 @@ The client retries the original request.
                         ▼
             Client retries original request
 ======================================================================================
+                            Users
+                            │
+                            ▼
+                    React Frontend (Vercel/Netlify)
+                            │
+                        HTTPS (TLS)
+                            │
+                            ▼
+                    Nginx / Load Balancer
+                            │
+                            ▼
+                        API Gateway
+                            │
+        ┌───────────┬───────────┬─────────────┐
+        │           │           │             │
+        ▼           ▼           ▼             ▼
+    Auth Service  Student    Attendance   Notification
+                Service      Service      Service
+        │           │           │             │
+        └───────────┴───────────┴─────────────┘
+                            │
+                    REST / Feign Clients
+                            │
+                            ▼
+                    FastAPI AI Service
+                    (Face Recognition)
+                        │             │
+                        ▼             ▼
+                    Qdrant         Storage
+                (Embeddings)   (Images/Uploads)
+                        │
+                        ▼
+                MySQL Database
+                        │
+                        ▼
+                    Redis Cache
+======================================================================================
+Responsibilities
+React Frontend
+Student Dashboard
+Admin Dashboard
+Login/Signup
+Reports
+Attendance Management
+API Gateway
+Single entry point
+JWT validation
+Routing requests
+Rate limiting
+CORS
+Request logging
+Auth Service
+Login
+Signup
+JWT generation
+Refresh tokens
+Forgot password
+OTP verification
+Roles (Admin/Student)
+Student Service
+Student CRUD
+Courses
+Sections
+Batches
+Parent information
+Attendance Service
+Attendance records
+Reports
+Monthly statistics
+Download CSV/PDF
+Attendance history
+FastAPI AI Service
+Face detection
+Face embeddings
+Face recognition
+Registration embeddings
+Attendance verification
+Qdrant
+
+Stores only vector embeddings.
+
+Example:
+
+Student
+ ├── id
+ ├── name
+ └── embedding

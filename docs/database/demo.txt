@@ -1,0 +1,44 @@
+
+
+# -----------------------------
+# EXAMPLE
+# -----------------------------
+if __name__ == "__main__":
+
+    create_collection()
+
+    # Dummy 512-dimensional embedding
+    embedding = [0.1] * 512
+
+    create_student(
+        student_id=101,
+        name="Harish",
+        embedding=embedding
+    )
+
+    students = get_student(101)
+
+    print("\nStored Student(s):")
+    for s in students:
+        print("Point ID:", s.id)
+        print("Payload:", s.payload)
+
+    # Update first embedding
+    if students:
+        point_id = students[0].id
+        new_embedding = [0.2] * 512
+
+        update_student(
+            point_id=point_id,
+            student_id=101,
+            name="Harish Kumar",
+            embedding=new_embedding
+        )
+
+        result = search_face(new_embedding)
+
+        print("\nSearch Result:")
+        for r in result:
+            print(r.payload, r.score)
+
+        delete_student(point_id)
