@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/Card";
 
 import { Button } from "@/components/ui/Button";
+import { handleUploadPhotos } from "../../services/api/dashboard/student/api";
 
 export default function FaceRegistrationCard() {
   const [images, setImages] = useState([]);
@@ -45,15 +46,15 @@ export default function FaceRegistrationCard() {
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     console.log(images);
+    const formData = new FormData();
 
-    // const formData = new FormData();
-    // images.forEach((img) => {
-    //   formData.append("images", img.file);
-    // });
-    //
-    // await uploadImages(formData);
+    images.forEach((image) => {
+      formData.append("files", image.file);
+    });
+    const response = await handleUploadPhotos(formData);
+    console.log("response in ui: ",response)
   };
 
   return (
@@ -174,7 +175,7 @@ export default function FaceRegistrationCard() {
         <p className="text-center text-xs text-muted-foreground">
           Upload <strong>3–5 clear photos</strong> of your face from different
           angles.
-           {/* On mobile, tap <strong>Take Photo</strong> to open your camera
+          {/* On mobile, tap <strong>Take Photo</strong> to open your camera
           or <strong>Choose from Gallery</strong> to select existing photos. */}
         </p>
       </CardContent>

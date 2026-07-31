@@ -67,7 +67,7 @@ export const handleStudentLogin = async (data) => {
     const message =
       error.response?.data?.data?.message ||
       error.response?.data?.message ||
-      "Password update failed";
+      "Login failed";
     toast.error(message);
     throw error;
   }
