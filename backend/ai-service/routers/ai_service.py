@@ -1,52 +1,330 @@
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from pathlib import Path
 from typing import List
-from datetime import datetime
-import cv2
-import modal
+import requests
 import numpy as np
+import cv2
 import os
-
-router = APIRouter(prefix="/api/v1", tags=["ai-service"])
-
-Volume=modal.Volume.from_name("uploaded-images")
-MODEL_DIR = "/images"
-
-# @router.get("/")
-# def health():
-#     return {
-#         "status": "AI Service is running",
-#         "message": "Welcome to the AI Service API",
-#     }
+from dotenv import load_dotenv
+from datetime import datetime
+from uuid import uuid4
 
 
-@router.post("/upload")
-async def test_upload(files: List[UploadFile] = File(...)):
-    # print("Received files:", [file.filename for file in files])
+from services.qdrant import create_student, search_face, update_student, delete_student
+
+from insightface.app import FaceAnalysis
+app = FaceAnalysis(name="buffalo_l")
+app.prepare(ctx_id=0)
+
+router = APIRouter(prefix="/api/v1/fr", tags=["AI Service"])
+
+load_dotenv()
+
+IMAGE_URL_BASE = os.getenv("IMAGE_URL_BASE")
+IMAGE_DIR = Path("/images")
+
+class Student(BaseModel):
+    studentId: int
+    studentName: str
+    imageUrls: List[str]
+
+class RegisterRequest(BaseModel):
+    students: List[Student]
+
+class FaceRequest(BaseModel):
+    imageUrl: str
+
+class StudentRequest(BaseModel):
+    studentId: int
+    studentName: str
+    imageUrls: list[str]
+
+@router.post("/students")
+async def register_students(request: RegisterRequest):
+
     results = []
 
-    for file in files:
-        # print("Received file:", file.filename)
-        # print("Content type:", file.content_type)
+    for student in request.students:
 
-        contents = await file.read()
+        embeddings = []
 
-        nparr = np.frombuffer(contents, np.uint8)
-        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        print(f"\n========== Registering {student.studentName} ==========")
 
-        if img is None:
-            results.append({"filename": file.filename, "error": "Invalid image"})
+        for image_url in student.imageUrls:
+
+            try:
+                print(f"Downloading: {image_url}")
+
+                response = requests.get(image_url, timeout=30)
+
+                if response.status_code != 200:
+                    print("Failed to download image")
+                    continue
+
+                image = cv2.imdecode(
+                    np.frombuffer(response.content, np.uint8),
+                    cv2.IMREAD_COLOR,
+                )
+
+                if image is None:
+                    print("Invalid image")
+                    continue
+
+                faces = app.get(image)
+
+                if len(faces) == 0:
+                    print("No face detected")
+                    continue
+
+                embeddings.append(faces[0].embedding)
+
+            except Exception as e:
+                print(e)
+
+        if len(embeddings) == 0:
+
+            results.append(
+                {
+                    "point_id": 0,
+                    "studentId": student.studentId,
+                    "studentName": student.studentName,
+                    "status": "FAILED",
+                    "reason": "No valid face embeddings found",
+                }
+            )
+
             continue
 
-        output_path = os.path.join(
-            MODEL_DIR,
-            file.filename or f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
+        average_embedding = np.mean(embeddings, axis=0).tolist()
+        
+        point_id=str(uuid4())
+        create_student(
+            id=point_id,
+            student_id=student.studentId,
+            name=student.studentName,
+            embedding=average_embedding,
         )
-        cv2.imwrite(output_path, img)
 
+        results.append(
+            {
+                "point_id":point_id,
+                "studentId": student.studentId,
+                "studentName": student.studentName,
+                "status": "SUCCESS",
+                "imagesProcessed": len(embeddings),
+            }
+        )
+
+    return {
+        "message": "Registration completed",
+        "results": results,
+    }
+
+@router.post("/faces")
+async def identify_all_faces(request: FaceRequest):
+
+    response = requests.get(request.imageUrl, timeout=30)
+
+    if response.status_code != 200:
+        return {"message": "Unable to download image."}
+
+    img = cv2.imdecode(
+        np.frombuffer(response.content, np.uint8),
+        cv2.IMREAD_COLOR,
+    )
+
+    if img is None:
+        return {"message": "Invalid image."}
+
+    faces = app.get(img)
+
+    if not faces:
+        return {
+            "message": "No faces detected.",
+            "results": []
+        }
+
+    GREEN_THRESHOLD = 0.7
+    YELLOW_THRESHOLD = 0.5
+
+    results = []
+
+    for face in faces:
+
+        embedding = face.embedding.tolist()
+
+        matches = search_face(
+            query_embedding=embedding,
+            limit=1
+        )
+
+        x1, y1, x2, y2 = map(int, face.bbox)
+
+        # Default values
+        score = 0.0
+        student_id = None
+        name = "Unknown"
+
+        if matches:
+            match = matches[0]
+            score = float(match.score)
+
+            payload = match.payload or {}
+
+            if score >= YELLOW_THRESHOLD:
+                student_id = payload.get("studentId")
+                name = payload.get("name", "Unknown")
+
+        # Rectangle color
+        if score >= GREEN_THRESHOLD:
+            color = (0, 255, 0)           
+        elif score >= YELLOW_THRESHOLD:
+            color = (0, 255, 255)        
+        else:
+            color = (0, 0, 255)         
+
+        # Draw rectangle
+        cv2.rectangle(img, (x1, y1), (x2, y2), color, 1)
+
+        # Draw label
+        cv2.putText(
+            img,
+            f"{name} ({score:.2f})",
+            (x1, max(y1 - 10, 20)),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.6,
+            color,
+            1,
+            )
+        
         results.append({
-            "filename": file.filename,
-            "message": "Image saved",
-            # "path": output_path,
+            "studentId": student_id,
+            "studentName": name,
+            "score": score,
+            "bbox": face.bbox.tolist(),
+            "threshold":score
         })
 
-    return {"results": results}
+    filename = f"{datetime.now():%Y%m%d_%H%M%S}.jpg"
+    filename = filename.replace(" ", "_")
+    output_path = IMAGE_DIR / filename
+    cv2.imwrite(str(output_path), img)
+    
+    return {
+        "facesDetected": len(faces),
+        "results": results,
+        "imageUrl": f"{IMAGE_URL_BASE}/{filename}"
+    }
+    
+@router.put("/students/{point_id}")
+async def update_student_embedding(
+    point_id: str,
+    request: StudentRequest
+):
+    embeddings = []
+
+    print(f"\n========== Updating {request.studentName} ==========")
+
+    for image_url in request.imageUrls:
+
+        try:
+            response = requests.get(image_url, timeout=30)
+
+            if response.status_code != 200:
+                continue
+
+            image = cv2.imdecode(
+                np.frombuffer(response.content, np.uint8),
+                cv2.IMREAD_COLOR
+            )
+
+            if image is None:
+                continue
+
+            faces = app.get(image)
+
+            if not faces:
+                continue
+
+            embeddings.append(faces[0].embedding)
+
+        except Exception as e:
+            print(e)
+
+    if not embeddings:
+        return {
+            "point_id": point_id,
+            "studentId": request.studentId,
+            "studentName": request.studentName,
+            "status": "FAILED",
+            "reason": "No valid face embeddings found"
+        }
+
+    average_embedding = np.mean(embeddings, axis=0).tolist()
+
+    update_student(
+        point_id=point_id,
+        student_id=request.studentId,
+        name=request.studentName,
+        embedding=average_embedding
+    )
+
+    return {
+        "point_id": point_id,
+        "studentId": request.studentId,
+        "studentName": request.studentName,
+        "status": "SUCCESS",
+        "imagesProcessed": len(embeddings)
+    }
+
+@router.delete("/students/{point_id}")
+async def delete_student_by_point(point_id: str):
+
+    delete_student(point_id)
+
+    return {
+        "point_id": point_id,
+        "status": "SUCCESS",
+        "message": "Student deleted successfully."
+    }
+    
+    
+# @router.get("/students/{student_id}")
+# async def get_student_by_id(student_id: int):
+
+#     students = get_student(student_id)
+
+#     if not students:
+#         return {
+#             "message": "Student not found"
+#         }
+
+#     point = students[0]
+
+#     return {
+#         "point_id": point.id,
+#         "studentId": point.payload.get("studentId"),
+#         "studentName": point.payload["name"]
+#     }
+
+# @router.get("/students")
+# async def get_all_students():
+
+#     students, _ = client.scroll(
+#         collection_name=COLLECTION_NAME,
+#         limit=100
+#     )
+
+#     return {
+#         "count": len(students),
+#         "students": [
+#             {
+#                 "point_id": point.id,
+#                 "studentId": point.payload["studentId"],
+#                 "studentName": point.payload["name"]
+#             }
+#             for point in students
+#         ]
+#     }
+    
