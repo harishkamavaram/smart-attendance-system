@@ -1,10 +1,10 @@
-package com.facetrack;
+package com.example.demo;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class AttendanceServiceApplicationTests {
+class AttendenceServiceApplicationTests {
 
 	@Test
 	void contextLoads() {

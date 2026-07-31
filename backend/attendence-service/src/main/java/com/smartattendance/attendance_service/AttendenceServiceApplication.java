@@ -1,13 +1,14 @@
-package com.facetrack;
+package com.smartattendance.attendance_service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class AttendanceServiceApplication {
+
+public class AttendenceServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(AttendanceServiceApplication.class, args);
+		SpringApplication.run(AttendenceServiceApplication.class, args);
 	}
 
 }
