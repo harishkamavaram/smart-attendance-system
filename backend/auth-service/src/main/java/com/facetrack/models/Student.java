@@ -39,7 +39,7 @@ public class Student extends BaseEntity {
 	@JoinColumn(name = "institute_id", nullable = false)
 	private Institute institute;
 
-	@Column(nullable = false, length = 7)
+	@Column(nullable = false, length = 20)
 	private String batch;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -67,14 +67,17 @@ public class Student extends BaseEntity {
 	@Column(nullable = false, length = 150)
 	private String parentEmail;
 
+	@Column(nullable = true)
+	private String pointId;
+
 	public Student() {
 		super();
 	}
 
 	public Student(String rollNumber, String firstName, String lastName, String email, String password, Role role,
 			Institute institute, String batch, Course course, String section, boolean hasEmbeddings,
-			boolean isPasswordUpdated, int loginCount, String parentName, String parentMobileNumber,
-			String parentEmail) {
+			boolean isPasswordUpdated, int loginCount, String parentName, String parentMobileNumber, String parentEmail,
+			String pointId) {
 		super();
 		this.rollNumber = rollNumber;
 		this.firstName = firstName;
@@ -92,6 +95,7 @@ public class Student extends BaseEntity {
 		this.parentName = parentName;
 		this.parentMobileNumber = parentMobileNumber;
 		this.parentEmail = parentEmail;
+		this.pointId = pointId;
 	}
 
 	public String getRollNumber() {
@@ -221,6 +225,15 @@ public class Student extends BaseEntity {
 	public void setParentEmail(String parentEmail) {
 		this.parentEmail = parentEmail;
 	}
+	
+
+	public String getPointId() {
+		return pointId;
+	}
+
+	public void setPointId(String pointId) {
+		this.pointId = pointId;
+	}
 
 	@Override
 	public String toString() {
@@ -228,7 +241,9 @@ public class Student extends BaseEntity {
 				+ email + ", password=" + password + ", role=" + role + ", institute=" + institute + ", batch=" + batch
 				+ ", course=" + course + ", section=" + section + ", hasEmbeddings=" + hasEmbeddings
 				+ ", isPasswordUpdated=" + isPasswordUpdated + ", loginCount=" + loginCount + ", parentName="
-				+ parentName + ", parentMobileNumber=" + parentMobileNumber + ", parentEmail=" + parentEmail + "]";
+				+ parentName + ", parentMobileNumber=" + parentMobileNumber + ", parentEmail=" + parentEmail
+				+ ", pointId=" + pointId + "]";
 	}
 
+	
 }

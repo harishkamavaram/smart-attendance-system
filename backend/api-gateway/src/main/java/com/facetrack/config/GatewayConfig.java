@@ -27,6 +27,18 @@ public class GatewayConfig {
                         .path("/api/v1/data/**")
                         .filters(f -> f.filter(authFilter.apply(new AuthenticationFilter.Config())))
                         .uri("lb://SERVICEA"))
+                
+                .route("face-recognition", r -> r
+                	    .path("/api/v1/fr/**")
+                	    .filters(f -> f
+                	        .setRequestHeader(
+                	            "Host",
+                	            "harishkamavaram--smart-attendance-ai-fastapi-app.modal.run")
+//                	        .filter(authFilter.apply(new AuthenticationFilter.Config()))
+                	    )
+                	    .uri("https://harishkamavaram--smart-attendance-ai-fastapi-app.modal.run"))
+
                 .build();
+        
     }
 }

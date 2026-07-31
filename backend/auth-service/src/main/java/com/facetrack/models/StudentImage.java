@@ -18,4 +18,5 @@ public class StudentImage extends BaseEntity {
     @Column(nullable = false, length = 500)
     private String imageUrl;
     
+    
 }

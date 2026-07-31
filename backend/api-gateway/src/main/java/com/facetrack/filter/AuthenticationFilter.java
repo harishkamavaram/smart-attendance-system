@@ -29,35 +29,33 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 
 	@Override
 	public GatewayFilter apply(Config config) {
-		return ((exchange, chain) -> {
+		return (exchange, chain) -> {
 
-			// Check if the route requires authentication
+			System.out.println("AuthenticationFilter executed");
+
 			if (validator.isSecured.test(exchange.getRequest())) {
 
-				// Get accessToken from HttpOnly cookie
-				HttpCookie accessTokenCookie = exchange.getRequest().getCookies().getFirst("accessToken");
+				System.out.println("Secured route");
+				System.out.println("Cookie: "+exchange.getRequest().getCookies().toString());
+				HttpCookie cookie = exchange.getRequest().getCookies().getFirst("accessToken");
 
-				// If cookie is missing, block the request
-				if (accessTokenCookie == null || accessTokenCookie.getValue().isBlank()) {
+				System.out.println("Cookie = " + cookie);
+
+				if (cookie == null || cookie.getValue().isBlank()) {
+					System.out.println("No access token");
+
 					exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
 					return exchange.getResponse().setComplete();
 				}
 
-				// Get the JWT from the cookie
-				String accessToken = accessTokenCookie.getValue();
+				System.out.println("Token found");
 
-				// Validate the JWT
-				try {
-					Jwts.parser().verifyWith(getSignKey()).build().parseSignedClaims(accessToken);
-				} catch (Exception e) {
-					System.out.println("Invalid access token: " + e.getMessage());
-					exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-					return exchange.getResponse().setComplete();
-				}
+				return chain.filter(exchange);
 			}
-			// If everything is fine, pass the request to the target service
+
+			System.out.println("Public route");
 			return chain.filter(exchange);
-		});
+		};
 	}
 
 	private SecretKey getSignKey() {
