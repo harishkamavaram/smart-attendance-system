@@ -1,5 +1,7 @@
 package com.facetrack.dao;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,4 +15,6 @@ public interface InstituteDaoRepository extends JpaRepository<Institute, Long> {
 	boolean existsByInstituteCode(Integer instituteCode);
 
 	boolean existsByEmail(String email);
+	
+	Optional<Institute> findByInstituteCode(Integer instituteCode);
 }

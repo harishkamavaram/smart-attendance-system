@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from email.mime import text
+
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from pathlib import Path
 from typing import List
@@ -9,11 +11,13 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime
 from uuid import uuid4
-
-
+from services.database import get_db
 from services.qdrant import create_student, search_face, update_student, delete_student
-
 from insightface.app import FaceAnalysis
+from sqlalchemy.orm import Session
+from sqlalchemy import text
+
+
 app = FaceAnalysis(name="buffalo_l")
 app.prepare(ctx_id=0)
 
@@ -39,7 +43,122 @@ class StudentRequest(BaseModel):
     studentId: int
     studentName: str
     imageUrls: list[str]
+    
+    
 
+@router.get("/health/db")
+def db_health(db: Session = Depends(get_db)):
+    result = db.execute(text("SELECT NOW()"))
+    return {"time": result.scalar()}
+
+
+@router.post("/faces")
+async def identify_all_faces(request: FaceRequest):
+    
+    response = requests.get(request.imageUrl, timeout=30)
+
+    if response.status_code != 200:
+        return {"message": "Unable to download image."}
+
+    img = cv2.imdecode(
+        np.frombuffer(response.content, np.uint8),
+        cv2.IMREAD_COLOR,
+    )
+
+    if img is None:
+        return {"message": "Invalid image."}
+
+    faces = app.get(img)
+
+    if not faces:
+        return {
+            "message": "No faces detected.",
+            "results": []
+        }
+
+    GREEN_THRESHOLD = 0.7
+    YELLOW_THRESHOLD = 0.5
+
+    results = []
+
+    for face in faces:
+
+        embedding = face.embedding.tolist()
+
+        matches = search_face(
+            query_embedding=embedding,
+            limit=1
+        )
+
+        x1, y1, x2, y2 = map(int, face.bbox)
+
+        # Default values
+        score = 0.0
+        student_id = None
+        name = "Unknown"
+
+        if matches:
+            match = matches[0]
+            score = float(match.score)
+
+            payload = match.payload or {}
+
+            if score >= YELLOW_THRESHOLD:
+                student_id = payload.get("studentId")
+                name = payload.get("name", "Unknown")
+
+        # Rectangle color
+        if score >= GREEN_THRESHOLD:
+            color = (0, 255, 0)           
+        elif score >= YELLOW_THRESHOLD:
+            color = (0, 255, 255)        
+        else:
+            color = (0, 0, 255)         
+
+        # Draw rectangle
+        cv2.rectangle(img, (x1, y1), (x2, y2), color, 1)
+
+        # Draw label
+        cv2.putText(
+            img,
+            f"{name} ({score:.2f})",
+            (x1, max(y1 - 10, 20)),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.6,
+            color,
+            1,
+            )
+        
+        results.append({
+            "studentId": student_id,
+            "studentName": name,
+            "score": score,
+            "bbox": face.bbox.tolist(),
+        })
+
+    filename = f"{datetime.now():%Y%m%d_%H%M%S}.jpg"
+    filename = filename.replace(" ", "_")
+    output_path = IMAGE_DIR / filename
+    cv2.imwrite(str(output_path), img)
+    
+    return {
+        "facesDetected": len(faces),
+        "results": results,
+        "imageUrl": f"{IMAGE_URL_BASE}/{filename}"
+    }
+    
+    
+@router.get("/students")
+def get_students(db: Session = Depends(get_db)):
+    result = db.execute(text("SELECT * FROM students"))
+    students = result.mappings().all()
+
+    return {
+        "message": "Get students endpoint",
+        "data": students
+    }
+
+    
 @router.post("/students")
 async def register_students(request: RegisterRequest):
 
@@ -121,102 +240,6 @@ async def register_students(request: RegisterRequest):
         "results": results,
     }
 
-@router.post("/faces")
-async def identify_all_faces(request: FaceRequest):
-
-    response = requests.get(request.imageUrl, timeout=30)
-
-    if response.status_code != 200:
-        return {"message": "Unable to download image."}
-
-    img = cv2.imdecode(
-        np.frombuffer(response.content, np.uint8),
-        cv2.IMREAD_COLOR,
-    )
-
-    if img is None:
-        return {"message": "Invalid image."}
-
-    faces = app.get(img)
-
-    if not faces:
-        return {
-            "message": "No faces detected.",
-            "results": []
-        }
-
-    GREEN_THRESHOLD = 0.7
-    YELLOW_THRESHOLD = 0.5
-
-    results = []
-
-    for face in faces:
-
-        embedding = face.embedding.tolist()
-
-        matches = search_face(
-            query_embedding=embedding,
-            limit=1
-        )
-
-        x1, y1, x2, y2 = map(int, face.bbox)
-
-        # Default values
-        score = 0.0
-        student_id = None
-        name = "Unknown"
-
-        if matches:
-            match = matches[0]
-            score = float(match.score)
-
-            payload = match.payload or {}
-
-            if score >= YELLOW_THRESHOLD:
-                student_id = payload.get("studentId")
-                name = payload.get("name", "Unknown")
-
-        # Rectangle color
-        if score >= GREEN_THRESHOLD:
-            color = (0, 255, 0)           
-        elif score >= YELLOW_THRESHOLD:
-            color = (0, 255, 255)        
-        else:
-            color = (0, 0, 255)         
-
-        # Draw rectangle
-        cv2.rectangle(img, (x1, y1), (x2, y2), color, 1)
-
-        # Draw label
-        cv2.putText(
-            img,
-            f"{name} ({score:.2f})",
-            (x1, max(y1 - 10, 20)),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.6,
-            color,
-            1,
-            )
-        
-        results.append({
-            "studentId": student_id,
-            "studentName": name,
-            "score": score,
-            "bbox": face.bbox.tolist(),
-            "threshold":score
-        })
-
-    filename = f"{datetime.now():%Y%m%d_%H%M%S}.jpg"
-    filename = filename.replace(" ", "_")
-    output_path = IMAGE_DIR / filename
-    cv2.imwrite(str(output_path), img)
-    
-    return {
-        "facesDetected": len(faces),
-        "results": results,
-        "imageUrl": f"{IMAGE_URL_BASE}/{filename}"
-    }
-    
 @router.put("/students/{point_id}")
 async def update_student_embedding(
     point_id: str,

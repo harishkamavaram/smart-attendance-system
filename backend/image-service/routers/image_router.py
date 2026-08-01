@@ -10,7 +10,7 @@ from services.database import get_db
 
 from services.helpers import insert_images_to_modal
 
-router = APIRouter(prefix="/api/v1/fr/images", tags=["Image-service"])
+router = APIRouter(prefix="/api/v1/images", tags=["Image-service"])
 
 IMAGE_DIR = Path("/images")
 

@@ -22,23 +22,33 @@ public class GatewayConfig {
                         .path("/auth/**")
                         .uri("lb://AUTH-SERVICE"))
 
-           
                 .route("service-a", r -> r
                         .path("/api/v1/data/**")
                         .filters(f -> f.filter(authFilter.apply(new AuthenticationFilter.Config())))
                         .uri("lb://SERVICEA"))
-                
+
                 .route("face-recognition", r -> r
-                	    .path("/api/v1/fr/**")
-                	    .filters(f -> f
-                	        .setRequestHeader(
-                	            "Host",
-                	            "harishkamavaram--smart-attendance-ai-fastapi-app.modal.run")
-//                	        .filter(authFilter.apply(new AuthenticationFilter.Config()))
-                	    )
-                	    .uri("https://harishkamavaram--smart-attendance-ai-fastapi-app.modal.run"))
+                        .path("/api/v1/fr/**")
+                        .filters(f -> f
+                                .setRequestHeader(
+                                        "Host",
+                                        "harishkamavaram--smart-attendance-ai-fastapi-app-dev.modal.run")
+                        // .filter(authFilter.apply(new AuthenticationFilter.Config()))
+                        )
+                        .uri("https://harishkamavaram--smart-attendance-ai-fastapi-app-dev.modal.run"))
+
+                .route("image-service", r -> r
+                        .path("/api/v1/images/**")
+                        .filters(f -> f
+                                .setRequestHeader(
+                                        "Host",
+                                        "harishkamavaram--smart-attendance-image-service-fastapi-app.modal.run")
+                        // .filter(authFilter.apply(new AuthenticationFilter.Config()))
+                        )
+                        .uri("https://harishkamavaram--smart-attendance-image-service-fastapi-app.modal.run"
+                                + ""))
 
                 .build();
-        
+
     }
 }

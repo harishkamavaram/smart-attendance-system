@@ -44,6 +44,7 @@ public class StudentAuthController {
 	@PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ApiResponse<RegisterStudentsResponse>> registerStudents(
 			@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+		System.out.println("In /auth/student/register");
 		return studentService.importStudents(file, request);
 	}
 

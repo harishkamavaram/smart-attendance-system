@@ -53,10 +53,11 @@ public class Student extends BaseEntity {
 	private boolean hasEmbeddings = false;
 
 	@Column(nullable = false)
-	private boolean isPasswordUpdated = false;
+	private boolean hasImages = false;
+
 
 	@Column(nullable = false)
-	private int loginCount = 0;
+	private boolean isPasswordUpdated = false;
 
 	@Column(nullable = false, length = 100)
 	private String parentName;
@@ -75,8 +76,8 @@ public class Student extends BaseEntity {
 	}
 
 	public Student(String rollNumber, String firstName, String lastName, String email, String password, Role role,
-			Institute institute, String batch, Course course, String section, boolean hasEmbeddings,
-			boolean isPasswordUpdated, int loginCount, String parentName, String parentMobileNumber, String parentEmail,
+			Institute institute, String batch, Course course, String section, boolean hasEmbeddings, boolean hasImages,
+			boolean isPasswordUpdated, String parentName, String parentMobileNumber, String parentEmail,
 			String pointId) {
 		super();
 		this.rollNumber = rollNumber;
@@ -91,11 +92,11 @@ public class Student extends BaseEntity {
 		this.section = section;
 		this.hasEmbeddings = hasEmbeddings;
 		this.isPasswordUpdated = isPasswordUpdated;
-		this.loginCount = loginCount;
 		this.parentName = parentName;
 		this.parentMobileNumber = parentMobileNumber;
 		this.parentEmail = parentEmail;
 		this.pointId = pointId;
+		this.hasImages = hasImages;
 	}
 
 	public String getRollNumber() {
@@ -118,14 +119,6 @@ public class Student extends BaseEntity {
 		this.lastName = lastName;
 	}
 
-	public int getLoginCount() {
-		return loginCount;
-	}
-
-	public void setLoginCount(int loginCount) {
-		this.loginCount = loginCount;
-	}
-
 	public void setRollNumber(String rollNumber) {
 		this.rollNumber = rollNumber;
 	}
@@ -140,6 +133,14 @@ public class Student extends BaseEntity {
 
 	public String getPassword() {
 		return password;
+	}
+
+	public boolean isHasImages() {
+		return hasImages;
+	}
+
+	public void setHasImages(boolean hasImages) {
+		this.hasImages = hasImages;
 	}
 
 	public void setPassword(String password) {
@@ -240,7 +241,7 @@ public class Student extends BaseEntity {
 		return "Student [rollNumber=" + rollNumber + ", firstName=" + firstName + ", lastName=" + lastName + ", email="
 				+ email + ", password=" + password + ", role=" + role + ", institute=" + institute + ", batch=" + batch
 				+ ", course=" + course + ", section=" + section + ", hasEmbeddings=" + hasEmbeddings
-				+ ", isPasswordUpdated=" + isPasswordUpdated + ", loginCount=" + loginCount + ", parentName="
+				+ ", isPasswordUpdated=" + isPasswordUpdated   + ", parentName="
 				+ parentName + ", parentMobileNumber=" + parentMobileNumber + ", parentEmail=" + parentEmail
 				+ ", pointId=" + pointId + "]";
 	}

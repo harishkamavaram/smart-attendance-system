@@ -4,13 +4,12 @@ import os
 image = (
     modal.Image.debian_slim()
     .pip_install_from_requirements("requirements.txt")
-    # .add_local_dir(".", remote_path="/root",copy=False) # copy=True for Force Build
     .add_local_python_source("routers")
     .add_local_python_source("services")
 )
 
 app = modal.App(
-    name="smart-attendance-ai",
+    name="smart-attendance-image-service",
     image=image,
 )
 
@@ -35,9 +34,7 @@ def debug():
 def fastapi_app():
     from fastapi import FastAPI
     from fastapi.middleware.cors import CORSMiddleware
-    from routers.image_service import router as image_service_router
-    from routers.ai_service import router as ai_service_router
-    from services.qdrant import create_collection
+    from routers.image_router import router as image_service_router
     
     QDRANT_URL = os.environ["QDRANT_URL"]
     QDRANT_API_KEY = os.environ["QDRANT_API_KEY"]
@@ -46,10 +43,9 @@ def fastapi_app():
     # print("QDRANT_URL: ",QDRANT_URL)
     # print("QDRANT_API_KEY: ", QDRANT_API_KEY)
     
-    create_collection()
     app = FastAPI(
-        title="AI Service API",
-        description="API for AI-powered attendance tracking",
+        title="Image Service API",
+        description="API for image processing and analysis",
         version="1.0.0",
         docs_url="/docs",   
         redoc_url="/redoc",
@@ -69,13 +65,12 @@ def fastapi_app():
     # )
 
     # Including routers
-    app.include_router(ai_service_router)
     app.include_router(image_service_router)
 
     @app.get("/")
     def root():
         return {
-            "message": "Smart Attendance AI Service",
+            "message": "Smart Attendance Image Service",
             "status": "running"
         }
         
