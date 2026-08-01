@@ -7,9 +7,10 @@ import { Avatar } from '@/components/ui/Misc'
 import { StatusChip } from '@/components/ui/Badge'
 import { AttendanceLineChart, DepartmentBarChart, StatusPieChart, AttendanceHeatmap } from '@/components/charts/ChartWrappers'
 import { dashboardStats, recentActivity } from '@/mock/misc'
-import { weeklyAttendanceTrend, departmentAttendance, attendanceHeatmap, attendanceSessions } from '@/mock/attendance'
+import { weeklyAttendanceTrend, departmentAttendance, attendanceHeatmap, attendanceSessionsMock } from '@/mock/attendance'
 import { bulkUploadHistory } from '@/mock/students'
 import { useAuth } from '../../../hooks/useAuth'
+import { useState } from 'react'
 
 const statusPie = [
   { name: 'Present', value: dashboardStats.attendanceToday },
@@ -25,19 +26,20 @@ const quickActions = [
 ]
 
 export default function AdminDashboard() {
+  const [attendanceSessions,setAttendanceSessions] = useState(attendanceSessionsMock) 
+
   const { adminUser } = useAuth();
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-1">
-        <h1 className="font-display text-2xl font-semibold tracking-tight">Good morning, {adminUser?.name || "Admin"}</h1>
+        <h1 className="font-display text-2xl font-semibold tracking-tight">Welcome, {adminUser?.name || "Admin"}</h1>
         <p className="text-sm text-muted-foreground">Here's what's happening across {adminUser?.institute.name || "institute"}.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard index={0} label="Total students" value={dashboardStats.totalStudents.toLocaleString()} icon={Users} accent="primary" trend={4.2} />
         <StatCard index={1} label="Attendance today" value={`${dashboardStats.attendanceToday}%`} icon={UserCheck} accent="success" trend={1.8} />
         <StatCard index={2} label="Absent today" value={dashboardStats.absentToday} icon={UserX} accent="destructive" trend={-3.1} />
-        <StatCard index={3} label="Late today" value={dashboardStats.lateToday} icon={Clock} accent="warning" trend={-1.2} />
         <StatCard index={4} label="AI accuracy" value={`${dashboardStats.aiAccuracy}%`} icon={ScanFace} accent="secondary" trend={0.6} />
         <StatCard index={5} label="Pending registrations" value={dashboardStats.pendingRegistrations} icon={ClipboardList} accent="warning" trend={-8.4} />
       </div>

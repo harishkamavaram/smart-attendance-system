@@ -8,12 +8,40 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
 import { Table, THead, TBody, TR, TH, TD } from '@/components/ui/Table'
 import { Breadcrumb } from '@/components/ui/Controls'
 import { EmptyState } from '@/components/ui/Misc'
-import { attendanceSessions, detectedFacesForSession } from '@/mock/attendance'
+import { attendanceSessionsMock, detectedFacesForSession } from '@/mock/attendance'
 import { toast } from 'sonner'
+import { useState } from 'react'
 
 export default function AttendanceResult() {
   const { id } = useParams()
-  const session = attendanceSessions.find((s) => s.id === id)
+  const [result, setResult] = useState(null);
+  const apiResponse = {
+    facesDetected: 8,
+    imageUrl: "https://dummyimage.com/800x500",
+    results: [
+      {
+        studentId: 2,
+        studentName: "Jeff Bezos",
+        score: 0.6918292,
+        bbox: [302, 86, 404, 218]
+      },
+      {
+        studentId: 3,
+        studentName: "Mark Zuckerberg",
+        score: 0.729031,
+        bbox: [55, 53, 143, 174]
+      },
+      {
+        studentId: null,
+        studentName: "Unknown",
+        score: 0.07282513,
+        bbox: [177, 125, 260, 251]
+      }
+    ]
+  };
+  // After API call
+  // setResult(response.data);
+  const session = attendanceSessionsMock.find((s) => s.id === id)
 
   if (!session) {
     return <EmptyState title="Session not found" action={<Link to="/admin/attendance/sessions"><Button>Back to sessions</Button></Link>} />
@@ -54,7 +82,7 @@ export default function AttendanceResult() {
         ))}
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      {/* <div className="grid gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle>Classroom image</CardTitle>
@@ -114,38 +142,109 @@ export default function AttendanceResult() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
       <Card>
         <CardContent className="p-5">
           <Tabs defaultValue="all">
             <TabsList>
-              <TabsTrigger value="all">All ({faces.length})</TabsTrigger>
-              <TabsTrigger value="unknown">Unknown ({unknown.length})</TabsTrigger>
-              <TabsTrigger value="duplicate">Duplicate ({duplicate.length})</TabsTrigger>
+              <TabsTrigger value="all">
+                All ({apiResponse.results.length})
+              </TabsTrigger>
+
+              <TabsTrigger value="unknown">
+                Unknown (
+                {
+                  apiResponse.results.filter(r => r.studentId === null).length
+                }
+                )
+              </TabsTrigger>
+
+              <TabsTrigger value="recognized">
+                Recognized (
+                {
+                  apiResponse.results.filter(r => r.studentId !== null).length
+                }
+                )
+              </TabsTrigger>
             </TabsList>
-            {['all', 'unknown', 'duplicate'].map((tab) => (
+
+            {["all", "recognized", "unknown"].map((tab) => (
               <TabsContent key={tab} value={tab}>
                 <Table>
                   <THead>
-                    <TR><TH>Student</TH><TH>Confidence</TH><TH>Status</TH><TH>Action</TH></TR>
+                    <TR>
+                      <TH>Student</TH>
+                      <TH>Confidence</TH>
+                      <TH>Status</TH>
+                      <TH>Action</TH>
+                    </TR>
                   </THead>
+
                   <TBody>
-                    {faces
-                      .filter((f) => tab === 'all' || f.status === tab)
-                      .map((f) => (
-                        <TR key={f.id}>
+                    {apiResponse.results
+                      .filter(face => {
+                        if (tab === "all") return true;
+                        if (tab === "recognized") return face.studentId !== null;
+                        if (tab === "unknown") return face.studentId === null;
+                      })
+                      .map((face, index) => (
+                        <TR key={index}>
                           <TD>
                             <div className="flex items-center gap-2.5">
-                              <Avatar name={f.student?.name || '?'} size={28} />
-                              {f.student ? f.student.name : <span className="text-muted-foreground italic">Unidentified</span>}
+                              <Avatar
+                                name={face.studentName}
+                                size={28}
+                              />
+
+                              <div>
+                                <div className="font-medium">
+                                  {face.studentName}
+                                </div>
+
+                                {face.studentId && (
+                                  <div className="text-xs text-muted-foreground">
+                                    Student ID: {face.studentId}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </TD>
-                          <TD>{f.confidence ? `${f.confidence}%` : '—'}</TD>
-                          <TD><StatusChip status={f.status === 'recognized' ? 'present' : f.status === 'duplicate' ? 'late' : 'absent'} label={f.status} /></TD>
+
                           <TD>
-                            {f.status !== 'recognized' && (
-                              <Button size="sm" variant="outline" onClick={() => toast.info('Manual match assigned')}>Assign manually</Button>
+                            {(face.score * 100).toFixed(2)}%
+                          </TD>
+
+                          <TD>
+                            <StatusChip
+                              status={
+                                face.studentId
+                                  ? "present"
+                                  : "absent"
+                              }
+                              label={
+                                face.studentId
+                                  ? "recognized"
+                                  : "unknown"
+                              }
+                            />
+                          </TD>
+
+                          <TD>
+                            {face.studentId === null ? (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() =>
+                                  toast.info("Assign manually")
+                                }
+                              >
+                                Assign
+                              </Button>
+                            ) : (
+                              <span className="text-green-600 text-sm">
+                                ✓ Verified
+                              </span>
                             )}
                           </TD>
                         </TR>

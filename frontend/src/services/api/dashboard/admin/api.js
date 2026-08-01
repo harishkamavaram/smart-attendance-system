@@ -1,9 +1,9 @@
 import { toast } from "sonner";
 import instance from "../../instance";
 
-// export const handleFetchFileUploadHistory = async (data) => {
+// export const handleFetchFileUploadHistory = async (id) => {
 //   try {
-//     // const response = await instance.post("/auth/admin/register", data);
+//     const response = await instance.post(`/api/v1/data/fileUploadHistory/${id}`);
 //     return response.data;
 //   } catch (error) {
 //     const message =
@@ -14,3 +14,4 @@ import instance from "../../instance";
 //     throw error;
 //   }
 // };
+    

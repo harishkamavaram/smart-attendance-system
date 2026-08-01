@@ -36,7 +36,7 @@ export default function AdminSettings() {
       <Tabs defaultValue="institution">
         <TabsList>
           <TabsTrigger value="institution">Institution</TabsTrigger>
-          <TabsTrigger value="roles">Roles</TabsTrigger>
+          {/* <TabsTrigger value="roles">Roles</TabsTrigger> */}
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           {/* <TabsTrigger value="ai">AI Configuration</TabsTrigger> */}
@@ -58,7 +58,7 @@ export default function AdminSettings() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="roles">
+        {/* <TabsContent value="roles">
           <Card>
             <CardHeader><CardTitle>Roles & permissions</CardTitle></CardHeader>
             <CardContent className="space-y-3">
@@ -76,7 +76,7 @@ export default function AdminSettings() {
               ))}
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
 
         <TabsContent value="appearance">
           <Card>

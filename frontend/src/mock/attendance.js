@@ -1,11 +1,11 @@
 import { students } from './students'
 
-export const attendanceSessions = [
-  { id: 'ses-001', subject: 'Data Structures & Algorithms', department: 'CSE', section: 'A', date: '2026-07-25', time: '09:00 AM', room: 'Lab 204', teacher: 'Dr. Anitha Rao', totalStudents: 62, present: 57, absent: 3, late: 2, status: 'completed', accuracy: 98.4 },
-  { id: 'ses-002', subject: 'Machine Learning', department: 'IT', section: 'B', date: '2026-07-25', time: '09:00 AM', room: 'Lab 301', teacher: 'Dr. Meera Nair', totalStudents: 48, present: 44, absent: 3, late: 1, status: 'completed', accuracy: 97.1 },
-  { id: 'ses-003', subject: 'Computer Networks', department: 'CSE', section: 'A', date: '2026-07-24', time: '10:00 AM', room: 'Room 112', teacher: 'Prof. Karan Mehta', totalStudents: 62, present: 59, absent: 2, late: 1, status: 'completed', accuracy: 99.0 },
-  { id: 'ses-004', subject: 'Digital Signal Processing', department: 'ECE', section: 'A', date: '2026-07-24', time: '11:10 AM', room: 'Room 214', teacher: 'Dr. Vikram Shah', totalStudents: 41, present: 36, absent: 4, late: 1, status: 'completed', accuracy: 96.5 },
-  { id: 'ses-005', subject: 'Structural Analysis', department: 'CIVIL', section: 'A', date: '2026-07-25', time: '02:00 PM', room: 'Room 305', teacher: 'Prof. Rajesh Kumar', totalStudents: 38, present: 0, absent: 0, late: 0, status: 'scheduled', accuracy: null },
+export const attendanceSessionsMock = [
+{ id: 'ses-001', subject: 'Data Structures & Algorithms', department: 'CSE', section: 'A', date: '2026-07-25', time: '09:00 AM', room: 'Lab 204', teacher: 'Dr. Anitha Rao', totalStudents: 62, present: 57, absent: 3, late: 2, status: 'completed', accuracy: 98.4 },
+  // { id: 'ses-002', subject: 'Machine Learning', department: 'IT', section: 'B', date: '2026-07-25', time: '09:00 AM', room: 'Lab 301', teacher: 'Dr. Meera Nair', totalStudents: 48, present: 44, absent: 3, late: 1, status: 'completed', accuracy: 97.1 },
+  // { id: 'ses-003', subject: 'Computer Networks', department: 'CSE', section: 'A', date: '2026-07-24', time: '10:00 AM', room: 'Room 112', teacher: 'Prof. Karan Mehta', totalStudents: 62, present: 59, absent: 2, late: 1, status: 'completed', accuracy: 99.0 },
+  // { id: 'ses-004', subject: 'Digital Signal Processing', department: 'ECE', section: 'A', date: '2026-07-24', time: '11:10 AM', room: 'Room 214', teacher: 'Dr. Vikram Shah', totalStudents: 41, present: 36, absent: 4, late: 1, status: 'completed', accuracy: 96.5 },
+  // { id: 'ses-005', subject: 'Structural Analysis', department: 'CIVIL', section: 'A', date: '2026-07-25', time: '02:00 PM', room: 'Room 305', teacher: 'Prof. Rajesh Kumar', totalStudents: 38, present: 0, absent: 0, late: 0, status: 'scheduled', accuracy: null },
 ]
 
 export const weeklyAttendanceTrend = [
@@ -64,3 +64,5 @@ export function detectedFacesForSession(sessionId) {
     status: i % 9 === 8 ? 'unknown' : i % 13 === 0 ? 'duplicate' : 'recognized',
   }))
 }
+
+

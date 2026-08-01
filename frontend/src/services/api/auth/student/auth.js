@@ -19,7 +19,7 @@ export const handleRegisterStudents = async (file) => {
       error.response?.data?.data?.message ||
       error.response?.data?.message ||
       "Student import failed";
-
+    console.log("Error Response:", message);
     toast.error(message);
     throw error;
   }
