@@ -35,7 +35,6 @@ def debug():
 def fastapi_app():
     from fastapi import FastAPI
     from fastapi.middleware.cors import CORSMiddleware
-    from routers.image_service import router as image_service_router
     from routers.ai_service import router as ai_service_router
     from services.qdrant import create_collection
     
@@ -70,7 +69,6 @@ def fastapi_app():
 
     # Including routers
     app.include_router(ai_service_router)
-    app.include_router(image_service_router)
 
     @app.get("/")
     def root():

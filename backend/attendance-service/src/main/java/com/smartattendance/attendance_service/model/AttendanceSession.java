@@ -1,74 +1,72 @@
 package com.smartattendance.attendance_service.model;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "attendance_sessions")
-public class AttendanceSession extends BaseEntity {
+public class AttendanceSession {
 
-	@Column(length = 50)
-	private String subject;
+	 
+	@Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@Column(name = "class_name", length = 50)
-	private String className;
+    @NotNull(message = "Course ID is required")
+    @Column(name = "course_id")
+    private Long courseId;
 
-	@Column(name = "teacher_id", length = 50)
-	private String teacherId;
+    @NotNull(message = "Section ID is required")
+    @Column(name = "section_id")
+    private Long sectionId;
+    
+    @NotNull(message = "Section name is required")
+    @Column(name = "section_name")
+    private Long sectionName;
 
-	@Column(name = "session_date")
-	private LocalDate sessionDate;
+    @NotNull(message = "Date is required")
+    private LocalDate date;
 
-	@Column(name = "start_time")
-	private LocalTime startTime;
+    @Column(name = "start_time")
+    private LocalTime startTime;
 
-	@Column(name = "end_time")
-	private LocalTime endTime;
+    @Column(name = "end_time")
+    private LocalTime endTime;
 
-	private String status;
+    private String room;
 
-	public AttendanceSession(String subject, String teacherId, LocalDate sessionDate, LocalTime starTime,
-			LocalTime endTime) {
-		this.subject = subject;
-		this.teacherId = teacherId;
-		this.sessionDate = sessionDate;
-		this.startTime = starTime;
-		this.endTime = endTime;
+	public Long getId() {
+		return id;
 	}
 
-
-	public String getSubject() {
-		return subject;
+	public void setId(Long id) {
+		this.id = id;
 	}
 
-	public void setSubject(String subject) {
-		this.subject = subject;
+	public Long getCourseId() {
+		return courseId;
 	}
 
-	public String getClassName() {
-		return className;
+	public void setCourseId(Long courseId) {
+		this.courseId = courseId;
 	}
 
-	public void setClassName(String className) {
-		this.className = className;
+	public Long getSectionId() {
+		return sectionId;
 	}
 
-	public String getTeacherId() {
-		return teacherId;
+	public void setSectionId(Long sectionId) {
+		this.sectionId = sectionId;
 	}
 
-	public void setTeacherId(String teacherId) {
-		this.teacherId = teacherId;
+	public LocalDate getDate() {
+		return date;
 	}
 
-	public LocalDate getSessionDate() {
-		return sessionDate;
-	}
-
-	public void setSessionDate(LocalDate sessionDate) {
-		this.sessionDate = sessionDate;
+	public void setDate(LocalDate date) {
+		this.date = date;
 	}
 
 	public LocalTime getStartTime() {
@@ -87,12 +85,16 @@ public class AttendanceSession extends BaseEntity {
 		this.endTime = endTime;
 	}
 
-	public String getStatus() {
-		return status;
+	public String getRoom() {
+		return room;
 	}
 
-	public void setStatus(String status) {
-		this.status = status;
+	public void setRoom(String room) {
+		this.room = room;
 	}
 
-}
+	    
+
+		
+	}
+

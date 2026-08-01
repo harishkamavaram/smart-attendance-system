@@ -22,20 +22,25 @@ public class GatewayConfig {
                         .path("/auth/**")
                         .uri("lb://AUTH-SERVICE"))
 
-                .route("service-a", r -> r
+                .route("attendance-service", r -> r
+                        .path("/api/v1/attendance/**")
+//                        .filters(f -> f.filter(authFilter.apply(new AuthenticationFilter.Config())))
+                        .uri("lb://ATTENDANCE-SERVICE"))
+                
+                .route("data-service", r -> r
                         .path("/api/v1/data/**")
-                        .filters(f -> f.filter(authFilter.apply(new AuthenticationFilter.Config())))
-                        .uri("lb://SERVICEA"))
+//                        .filters(f -> f.filter(authFilter.apply(new AuthenticationFilter.Config())))
+                        .uri("lb://DATA-SERVICE"))
 
                 .route("face-recognition", r -> r
                         .path("/api/v1/fr/**")
                         .filters(f -> f
                                 .setRequestHeader(
                                         "Host",
-                                        "harishkamavaram--smart-attendance-ai-fastapi-app-dev.modal.run")
+                                        "harishkamavaram--smart-attendance-ai-fastapi-app.modal.run")
                         // .filter(authFilter.apply(new AuthenticationFilter.Config()))
                         )
-                        .uri("https://harishkamavaram--smart-attendance-ai-fastapi-app-dev.modal.run"))
+                        .uri("https://harishkamavaram--smart-attendance-ai-fastapi-app.modal.run"))
 
                 .route("image-service", r -> r
                         .path("/api/v1/images/**")

@@ -22,7 +22,8 @@ public class CorsConfig {
                 "http://localhost:5173",
                 "http://192.168.1.111:5173",
                 "http://172.29.128.1:5173",
-                "https://smart-attend-ai.netlify.app"
+                "https://smart-attend-ai.netlify.app",
+                "http://ec2-16-16-76-165.eu-north-1.compute.amazonaws.com"
         ));
 
         config.setAllowedMethods(List.of(

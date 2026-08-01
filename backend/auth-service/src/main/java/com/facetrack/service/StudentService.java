@@ -100,7 +100,7 @@ public class StudentService {
 
 	public ResponseEntity<ApiResponse<RegisterStudentsResponse>> importStudents(MultipartFile file,
 			HttpServletRequest request) {
-		System.out.println("In importStudents Service");
+//		System.out.println("In importStudents Service");
 		List<StudentImportDTO> students = null;
 		Cookie[] cookies = request.getCookies();
 		String accessToken = null;
@@ -153,16 +153,16 @@ public class StudentService {
 					errors.add("Row " + (i + 2) + " : Roll Number already exists.");
 					continue;
 				}
-				System.out.println("Log after existsByRollNumber");
+//				System.out.println("Log after existsByRollNumber");
 				if (studentDAO.existsByEmail(dto.email())) {
 					failedCount++;
 					errors.add("Row " + (i + 2) + " : Email already exists.");
 					continue;
 				}
 
-				System.out.println("Log after existsByEmail");
-				System.out.println("Institute Code from Excel = " + dto.institueCode());
-				System.out.println("Course Code from Excel = " + dto.courseCode());
+//				System.out.println("Log after existsByEmail");
+//				System.out.println("Institute Code from Excel = " + dto.institueCode());
+//				System.out.println("Course Code from Excel = " + dto.courseCode());
 				Optional<Institute> instituteObj = instituteDAO.findByInstituteCode(Math.toIntExact(dto.institueCode()));
 
 				if (instituteObj.isEmpty()) {
@@ -171,7 +171,7 @@ public class StudentService {
 					continue;
 				}
 
-				System.out.println("Log after instituteObj");
+//				System.out.println("Log after instituteObj");
 				Optional<Course> courseObj = courseDAO.findById(dto.courseCode());
 
 				if (courseObj.isEmpty()) {
@@ -180,7 +180,7 @@ public class StudentService {
 					continue;
 				}
 
-				System.out.println("Log after instituteObj");
+//				System.out.println("Log after instituteObj");
 				
 				Student student = new Student();
 				student.setRollNumber(dto.rollNumber());
@@ -211,7 +211,7 @@ public class StudentService {
 
 				student.setPasswordUpdated(false);
 
-				System.out.println("Registering Student email: " + student.getEmail());
+//				System.out.println("Registering Student email: " + student.getEmail());
 				Student saved = studentDAO.save(student);
 				System.out.println("Saved Student ID = " + saved.getEmail());
 				successCount++;

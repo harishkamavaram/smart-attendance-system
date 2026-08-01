@@ -142,6 +142,7 @@ async def identify_all_faces(request: FaceRequest):
     cv2.imwrite(str(output_path), img)
     
     return {
+        # "sessionId": str(uuid4()),
         "facesDetected": len(faces),
         "results": results,
         "imageUrl": f"{IMAGE_URL_BASE}/{filename}"
