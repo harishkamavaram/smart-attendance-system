@@ -30,6 +30,8 @@ def debug():
 
 
 @app.function(volumes={MODEL_DIR: Volume},
+                scaledown_window=15 * 60,
+                min_containers=1,
                 secrets=[Secrets])
 @modal.asgi_app()
 def fastapi_app():

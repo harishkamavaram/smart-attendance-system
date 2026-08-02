@@ -9,14 +9,14 @@ import numpy as np
 import cv2
 import os
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, date
 from uuid import uuid4
 from services.database import get_db
 from services.qdrant import create_student, search_face, update_student, delete_student
 from insightface.app import FaceAnalysis
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-
+import time
 
 app = FaceAnalysis(name="buffalo_l")
 app.prepare(ctx_id=0)
@@ -37,14 +37,19 @@ class RegisterRequest(BaseModel):
     students: List[Student]
 
 class FaceRequest(BaseModel):
+    sessionId: int
+    courseId: int
+    sectionId: str
     imageUrl: str
+    isFirstimage : bool
+    adminId: int
 
 class StudentRequest(BaseModel):
     studentId: int
     studentName: str
     imageUrls: list[str]
     
-    
+
 
 @router.get("/health/db")
 def db_health(db: Session = Depends(get_db)):
@@ -53,23 +58,30 @@ def db_health(db: Session = Depends(get_db)):
 
 
 @router.post("/faces")
-async def identify_all_faces(request: FaceRequest):
+async def identify_all_faces(request: FaceRequest,db: Session = Depends(get_db)):
     
+    start = time.perf_counter()
     response = requests.get(request.imageUrl, timeout=30)
-
+    print("Download:", time.perf_counter() - start)
+    
     if response.status_code != 200:
         return {"message": "Unable to download image."}
 
+    t = time.perf_counter()
     img = cv2.imdecode(
         np.frombuffer(response.content, np.uint8),
         cv2.IMREAD_COLOR,
     )
+    print("Decode:", time.perf_counter() - t)
 
     if img is None:
         return {"message": "Invalid image."}
 
+    t = time.perf_counter()
     faces = app.get(img)
-
+    print("Face detection:", time.perf_counter() - t)
+    
+    
     if not faces:
         return {
             "message": "No faces detected.",
@@ -80,7 +92,7 @@ async def identify_all_faces(request: FaceRequest):
     YELLOW_THRESHOLD = 0.5
 
     results = []
-
+    t = time.perf_counter()
     for face in faces:
 
         embedding = face.embedding.tolist()
@@ -135,12 +147,111 @@ async def identify_all_faces(request: FaceRequest):
             "score": score,
             "bbox": face.bbox.tolist(),
         })
+    print("Vector search:", time.perf_counter() - t)
 
     filename = f"{datetime.now():%Y%m%d_%H%M%S}.jpg"
     filename = filename.replace(" ", "_")
     output_path = IMAGE_DIR / filename
-    cv2.imwrite(str(output_path), img)
     
+    t = time.perf_counter()
+    cv2.imwrite(str(output_path), img)
+    print("Save image:", time.perf_counter() - t)
+    
+    t = time.perf_counter()
+    if request.isFirstimage:
+        fetch_students_query = text("""
+            SELECT
+                id,
+                first_name,
+                last_name
+            FROM students
+            WHERE course_id = :course_id
+        """)
+            # AND section = :section
+            # AND is_active = true
+            
+        students = db.execute(
+            fetch_students_query,
+            {
+                "course_id": request.courseId,
+                # "section": request.sectionId
+            }
+        ).mappings().all()
+        
+        insert_query = text("""
+                INSERT INTO attendance (
+                    session_id,
+                    student_id,
+                    student_name,
+                    confidence,
+                    status,
+                    attendance_date,
+                    marked_at,
+                    image_name,
+                    marked_by
+                )
+                VALUES (
+                    :session_id,
+                    :student_id,
+                    :student_name,
+                    :confidence,
+                    :status,
+                    :attendance_date,
+                    :marked_at,
+                    :image_name,
+                    :marked_by
+                )
+            """)
+
+        for student in students:
+            print(f"Student Id: {student['id']}, Student Name: {student['first_name']} {student['last_name']}")
+            db.execute(
+                insert_query,
+                {
+                    "session_id": request.sessionId,
+                    "student_id": student["id"],
+                    "student_name": f"{student['first_name']} {student['last_name']}",
+                    "confidence": 0.0,
+                    "status": "ABSENT",
+                    "attendance_date": date.today(),
+                    "marked_at": datetime.now(),
+                    "image_name": None,
+                    "marked_by": request.adminId,
+                },
+            )
+
+        db.commit()
+    print("DB:", time.perf_counter() - t)
+    
+    update_query = text("""
+            UPDATE attendance
+            SET
+                status = 'PRESENT',
+                confidence = :confidence,
+                image_name = :image_name,
+                marked_at = :marked_at
+            WHERE
+                session_id = :session_id
+                AND student_id = :student_id
+            """)
+
+    for result in results:
+        if result["studentId"] is None:
+            continue
+        print(f"Student Id: {result["studentId"]}, Student Name: {result["score"]}")
+        db.execute(
+            update_query,
+            {
+                "confidence": float(result["score"]),
+                "image_name": f"{IMAGE_URL_BASE}/{filename}",
+                "marked_at": datetime.now(),
+                "session_id": request.sessionId,
+                "student_id": str(result["studentId"]),
+            },
+        )
+
+    db.commit()
+    print("TOTAL: ", time.perf_counter() - t)
     return {
         # "sessionId": str(uuid4()),
         "facesDetected": len(faces),
