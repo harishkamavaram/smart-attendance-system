@@ -9,7 +9,7 @@ export const handleFetchStudentsByInstituteId = async (id) => {
     const message =
       error.response?.data?.data?.message ||
       error.response?.data?.message ||
-      "Login failed";
+      "Failed to fetch students";
     toast.error(message);
     throw error;
   }
@@ -18,12 +18,13 @@ export const handleFetchStudentsByInstituteId = async (id) => {
 export const handleFetchCourses = async () => {
   try {
     const response = await instance.get("/api/v1/data/courses");
+    console.log("Fetched courses in API:", response.data);
     return response.data;
   } catch (error) {
     const message =
       error.response?.data?.data?.message ||
       error.response?.data?.message ||
-      "Login failed";
+      "Failed to fetch courses";
     toast.error(message);
     throw error;
   }

@@ -27,7 +27,6 @@ import AttendanceSessions from '@/pages/admin/attendance/AttendanceSessions'
 import AttendanceResult from '@/pages/admin/attendance/AttendanceResult'
 import AiRecognition from '@/pages/admin/attendance/AiRecognition'
 import Reports from '@/pages/admin/reports/Reports'
-import Classes from '@/pages/admin/classes/Classes'
 import AdminSettings from '@/pages/admin/settings/AdminSettings'
 
 import StudentDashboard from '@/pages/student/StudentDashboard'
@@ -44,6 +43,7 @@ import AdminLoggedInGaurd from './routes/AdminLoggedInGaurd'
 import StudentLoggedInGaurd from './routes/StudentLoggedInGaurd'
 import ChangeDefaultPassword from './pages/student/ChangeDefaultPassword'
 import StudentResetPassword from './pages/student/auth/StudentResetPassword'
+import Courses from './pages/admin/courses/Courses'
 
 export default function App() {
   return (
@@ -90,8 +90,9 @@ export default function App() {
           <Route path="/admin/attendance/sessions" element={<AttendanceSessions />} />
           <Route path="/admin/attendance/sessions/:id" element={<AttendanceResult />} />
           <Route path="/admin/recognition" element={<AiRecognition />} />
+          <Route path="/admin/recognition/:id" element={<AiRecognition />} />
           <Route path="/admin/reports" element={<Reports />} />
-          <Route path="/admin/classes" element={<Classes />} />
+          <Route path="/admin/courses" element={<Courses />} />
           <Route path="/admin/settings" element={<AdminSettings />} />
         </Route>
       </Route>

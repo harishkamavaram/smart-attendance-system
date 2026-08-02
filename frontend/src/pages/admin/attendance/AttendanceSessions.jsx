@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Plus, Clock, MapPin, Users } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -10,30 +10,25 @@ import { Select, Breadcrumb } from '@/components/ui/Controls'
 import { attendanceSessionsMock } from '@/mock/attendance'
 import { subjects } from '@/mock/academics'
 import { toast } from 'sonner'
-import { handleCreateAttendanceSession, handleFetchAttendanceSessions } from '../../../services/api/attendance/api'
+import { handleCreateAttendanceSession, handleFetchAttendanceSessions, handleFetchSections } from '../../../services/api/attendance/api'
+import { handleFetchCourses } from '../../../services/api/course/api'
 
 export default function AttendanceSessions() {
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   // Form state
   const [selectedCourse, setSelectedCourse] = useState(1);
   const [selectedSection, setSelectedSection] = useState(1);
+  const [sessionName, setSessionName] = useState("");
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [room, setRoom] = useState("");
   const [attendanceSessions, setAttendanceSessions] = useState([]);
   const [course, setCourse] = useState([
-    { id: 1, name: "Computer Science Engineering" },
-    { id: 2, name: "Information Technology" },
-    { id: 3, name: "Electronics & Communication Engineering" }
   ]);
-  const [sections, setSections] = useState([
-    { id: 1, courseId: 1, name: "A" },
-    { id: 2, courseId: 1, name: "B" },
-    { id: 3, courseId: 2, name: "A" },
-    { id: 4, courseId: 2, name: "B" },
-    { id: 5, courseId: 3, name: "A" }
-  ]);
+  const [sections, setSections] = useState([]);
+
   const validateForm = () => {
     // Course
     if (!selectedCourse) {
@@ -126,14 +121,41 @@ export default function AttendanceSessions() {
     if (!validateForm()) {
       return;
     }
+    // const payload = {
+    //     courseId: selectedCourse,
+    //     sectionId: 1,
+    //     sessionName: sessionName.trim() === '' ? course.find((c) => c.id === selectedCourse)?.name : sessionName.trim(),
+    //     date,
+    //     startTime,
+    //     endTime,
+    //     room: room.trim(),
+    //   };
+    // console.log("Selected Course ID:", selectedCourse); 
+    // console.log("Selected Section ID:", selectedSection);
 
     const payload = {
       courseId: selectedCourse,
       sectionId: selectedSection,
+
+      courseName: course.find((c) => c.id === selectedCourse)?.name || "",
+      sectionName: sections.find((s) => s.id === selectedSection)?.sectionName || "",
+
+      sessionName:
+        sessionName.trim() === ""
+          ? course.find((c) => c.id === selectedCourse)?.name || ""
+          : sessionName.trim(),
+
       date,
       startTime,
       endTime,
       room: room.trim(),
+
+      // Initial values
+      totalStudents: 0,
+      present: 0,
+      absent: 0,
+      accuracy: 0,
+      status: "Scheduled",
     };
 
     console.log(payload);
@@ -148,19 +170,37 @@ export default function AttendanceSessions() {
       console.error("Failed to create attendance session:", error);
     }
   };
-
+  const fetchSessions = async () => {
+    try {
+      const response = await handleFetchAttendanceSessions();
+      console.log("Fetched attendance sessions:", response);
+      setAttendanceSessions(response);
+    } catch (error) {
+      console.error("Failed to fetch attendance sessions:", error);
+    }
+  };
+  const fetchCourses = async () => {
+    try {
+      const response = await handleFetchCourses();
+      // console.log("Fetched courses:", response);
+      setCourse(response.data);
+    } catch (error) {
+      console.error("Failed to fetch courses:", error);
+    }
+  }
+  const fetchSections = async () => {
+    try {
+      const response = await handleFetchSections();
+      console.log("Fetched sections:", response);
+      setSections(response);
+    } catch (error) {
+      console.error("Failed to fetch sections:", error);
+    }
+  }
   useEffect(() => {
-    const fetchSessions = async () => {
-      try {
-        const response = await handleFetchAttendanceSessions();
-        console.log("Fetched attendance sessions:", response);
-        setAttendanceSessions(response);
-      } catch (error) {
-        console.error("Failed to fetch attendance sessions:", error);
-      }
-    };
-    console.log("Sessions before fetch:", attendanceSessions);
     fetchSessions();
+    fetchCourses();
+    fetchSections();
   }, []);
 
   return (
@@ -173,51 +213,58 @@ export default function AttendanceSessions() {
         </div>
         <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> Create session</Button>
       </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {attendanceSessions.map((s) => (
-          <Link key={s.id} to={`/admin/attendance/sessions/${s.id}`}>
-            <Card className="h-full p-5 hover:shadow-soft-lg transition-shadow">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="font-semibold">Session #{s.id}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Course: {s.courseId}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Section: {s.sectionId}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-4 space-y-2 text-xs text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-3.5 w-3.5" />
-                  {s.date}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Clock className="h-3.5 w-3.5" />
-                  {s.startTime} - {s.endTime}
+      {attendanceSessions.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-3 rounded-lg  p-12 text-center">
+          <Users className="h-14 w-14 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">No attendance sessions yet</p>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {attendanceSessions.map((s) => (
+            <Link key={s.id} to={`/admin/attendance/sessions/${s.id}`}>
+              <Card className="h-full p-5 hover:shadow-soft-lg transition-shadow">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="font-semibold">Session: {s.sessionName}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Course: {s.courseName}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Section: {s.sectionName}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-3.5 w-3.5" />
-                  {s.room}
-                </div>
-              </div>
+                <div className="mt-4 space-y-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-3.5 w-3.5" />
+                    {s.date}
+                  </div>
 
-              <Button
-                size="sm"
-                variant="outline"
-                className="mt-4 w-full"
-              >
-                Start Session
-              </Button>
-            </Card>
-          </Link>
-        ))}
-      </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-3.5 w-3.5" />
+                    {s.startTime} - {s.endTime}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-3.5 w-3.5" />
+                    {s.room}
+                  </div>
+                </div>
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-4 w-full"
+                  onClick={() => { navigate(`/admin/attendance/sessions/${s.id}`) }}
+                >
+                  Start Session
+                </Button>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      )}
 
       <Dialog
         open={open}
@@ -225,11 +272,21 @@ export default function AttendanceSessions() {
         title="Create Attendance Session"
       >
         <form className="space-y-4" onSubmit={createSession}>
-
+          {/* Section Name */}
+          <div>
+            <Label>Session Name</Label>
+            <Input
+              type="text"
+              placeholder="Leave empty to use course name"
+              value={sessionName}
+              onChange={(e) => setSessionName(e.target.value)}
+            />
+          </div>
           {/* Course */}
           <div>
             <Label>Course</Label>
             <select
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               value={selectedCourse}
               onChange={(e) => setSelectedCourse(Number(e.target.value))}
             >
@@ -253,7 +310,7 @@ export default function AttendanceSessions() {
                 .filter((section) => section.courseId === selectedCourse)
                 .map((section) => (
                   <option key={section.id} value={section.id}>
-                    Section {section.name}
+                    Section {section.sectionName}
                   </option>
                 ))}
             </select>

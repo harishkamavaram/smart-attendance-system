@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { UploadCloud, ScanEye, Loader2 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -7,30 +7,84 @@ import { Select, Breadcrumb } from '@/components/ui/Controls'
 import { Progress } from '@/components/ui/Misc'
 import { subjects } from '@/mock/academics'
 import { toast } from 'sonner'
+import { handleFetchAttendanceSessions } from '../../../services/api/attendance/api'
+import { uploadImage, identifyFaces } from '../../../services/api/ai-recognition/api'
 
 const stages = ['Uploading image', 'Detecting faces', 'Generating embeddings', 'Matching students', 'Logging attendance']
 
 export default function AiRecognition() {
+  const { id } = useParams()
   const [dragging, setDragging] = useState(false)
   const [processing, setProcessing] = useState(false)
   const [stageIndex, setStageIndex] = useState(0)
+  const [sessions, setSessions] = useState([])
+  const [sessionId, setSessionId] = useState(id || null)
+  console.log("Session ID:", sessionId);
+  const [imageUrl, setImageUrl] = useState(null)
+  const [respImageUrl, setRespImageUrl] = useState(null)
   const navigate = useNavigate()
 
-  const runPipeline = () => {
-    setProcessing(true)
-    setStageIndex(0)
-    let i = 0
-    const interval = setInterval(() => {
-      i += 1
-      setStageIndex(i)
-      if (i >= stages.length) {
-        clearInterval(interval)
-        toast.success('Attendance generated for 57 of 62 students')
-        setTimeout(() => navigate('/admin/attendance/sessions/ses-001'), 500)
-      }
-    }, 600)
-  }
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!sessionId) {
+      toast.error("Please select a session first");
+      return;
+    }
+    try {
+      setProcessing(true);
 
+      const imageUrl = await uploadImage(file);
+      console.log("Uploaded image URL:", imageUrl);
+      // Call face recognition API
+      const courseId = sessions.find((s) => s.id == id).courseId;
+      const sectionId = sessions.find((s) => s.id == id).sectionId.toString();
+      const hasUploadedImage = sessions.find((s) => s.id == id).hasUploadedImage;
+      const totalStudents = sessions.find((s) => s.id == id).totalStudents
+      const admin = JSON.parse(localStorage.getItem("admin_user"));
+      const adminId = parseInt(admin?.institute.id)
+      // console.log("Course Id: ",courseId)
+      // console.log("Section Id:",sectionId)
+      // console.log("Has Image Uploaded: ",!hasUploadedImage)
+
+      const payload =
+      {
+        "sessionId": parseInt(sessionId),
+        "courseId": courseId,
+        "sectionId": sectionId,
+        "imageUrl": imageUrl,
+        "isFirstImage": !hasUploadedImage,
+        "adminId": adminId,
+        "totalStudents": totalStudents
+      }
+      console.log("Payload: ", payload)
+      const response = await identifyFaces(payload);
+      setImageUrl(imageUrl);
+      console.log(response);
+      if (response.status == 200) {
+        toast.success("Attendance generated");
+        setRespImageUrl(response.data?.imageUrl);
+        // navigate(`/admin/attendance/sessions/${response.sessionId}`);
+      }
+
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setProcessing(false);
+    }
+  };
+  const fetchSessions = async () => {
+    try {
+      const response = await handleFetchAttendanceSessions();
+      console.log("Fetched attendance sessions:", response);
+      setSessions(response);
+    } catch (error) {
+      console.error("Failed to fetch attendance sessions:", error);
+    }
+  };
+  useEffect(() => {
+    fetchSessions()
+  }, [])
   return (
     <div className="space-y-5">
       <Breadcrumb items={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'AI Recognition' }]} />
@@ -44,12 +98,11 @@ export default function AiRecognition() {
           <CardContent className="p-6">
             <div className="grid gap-3 sm:grid-cols-2 mb-5">
               <div>
-                <label className="mb-1.5 block text-sm font-medium">Subject</label>
-                <Select placeholder="Select subject" options={subjects.map((s) => ({ value: s.id, label: s.name }))} />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium">Section</label>
-                <Select placeholder="Select section" options={[{ value: 'A', label: 'Section A' }, { value: 'B', label: 'Section B' }, { value: 'C', label: 'Section C' }]} />
+                <label className="mb-1.5 block text-sm font-medium">Sessions</label>
+                <Select placeholder="Select session" value={sessionId} options={sessions.map((s) => ({ value: s.id, label: s.sessionName }))}
+                  onValueChange={(value) => {
+                    setSessionId(value);
+                  }} />
               </div>
             </div>
 
@@ -57,9 +110,8 @@ export default function AiRecognition() {
               onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
               onDragLeave={() => setDragging(false)}
               onDrop={(e) => { e.preventDefault(); setDragging(false); runPipeline() }}
-              className={`flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed p-12 text-center transition-colors ${
-                dragging ? 'border-primary bg-accent' : 'border-border'
-              }`}
+              className={`flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed p-12 text-center transition-colors ${dragging ? 'border-primary bg-accent' : 'border-border'
+                }`}
             >
               {!processing ? (
                 <>
@@ -69,7 +121,7 @@ export default function AiRecognition() {
                   <p className="font-medium">Drop a classroom photo here</p>
                   <p className="text-sm text-muted-foreground">JPG or PNG, up to 15MB</p>
                   <label>
-                    <input type="file" accept="image/*" className="hidden" onChange={runPipeline} />
+                    <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
                     <span className="mt-1 inline-flex h-10 cursor-pointer items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90">
                       Browse photo
                     </span>
@@ -85,25 +137,88 @@ export default function AiRecognition() {
             </div>
           </CardContent>
         </Card>
+        {imageUrl ? (
+          <>{imageUrl && (
+            <Card className="lg:col-span-1 sticky top-5">
+              <CardHeader>
+                <CardTitle>Image Preview</CardTitle>
+              </CardHeader>
 
-        <Card>
-          <CardHeader><CardTitle>Recognition pipeline</CardTitle></CardHeader>
-          <CardContent className="space-y-3">
-            {stages.map((s, i) => (
-              <div key={s} className="flex items-center gap-3">
-                <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${
-                  processing && i < stageIndex ? 'bg-success/15 text-success' : processing && i === stageIndex ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'
-                }`}>
-                  {i + 1}
-                </span>
-                <span className="text-sm text-muted-foreground">{s}</span>
+              <CardContent className="space-y-6">
+
+                <div>
+                  <p className="mb-2 text-sm font-medium">
+                    Original Image
+                  </p>
+
+                  <div className="overflow-hidden rounded-xl border bg-muted">
+                    <img
+                      src={imageUrl}
+                      alt="Original"
+                      className="aspect-video w-full object-contain"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <p className="mb-2 text-sm font-medium">
+                    Processed Image
+                  </p>
+
+                  <div className="overflow-hidden rounded-xl border bg-muted">
+                    {respImageUrl ? (
+                      <img
+                        src={respImageUrl}
+                        alt="Processed"
+                        className="aspect-video w-full object-contain"
+                      />
+                    ) : (
+                      <div className="flex aspect-video items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+              </CardContent>
+            </Card>
+          )}</>
+
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>Recognition Pipeline</CardTitle>
+            </CardHeader>
+
+            <CardContent className="space-y-3">
+              {stages.map((s, i) => (
+                <div
+                  key={s}
+                  className="flex items-center gap-3"
+                >
+                  <span
+                    className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${processing && i < stageIndex
+                      ? "bg-success/15 text-success"
+                      : processing && i === stageIndex
+                        ? "bg-primary/15 text-primary"
+                        : "bg-muted text-muted-foreground"
+                      }`}
+                  >
+                    {i + 1}
+                  </span>
+
+                  <span className="text-sm text-muted-foreground">
+                    {s}
+                  </span>
+                </div>
+              ))}
+
+              <div className="rounded-lg bg-muted p-3 text-xs text-muted-foreground">
+                Faces below the confidence threshold are flagged for manual review.
               </div>
-            ))}
-            <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted p-3 text-xs text-muted-foreground">
-              <ScanEye className="h-4 w-4 shrink-0" /> Faces below the confidence threshold are flagged as unknown for manual review.
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )

@@ -1,5 +1,14 @@
-import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Download, ScanFace, AlertTriangle, Copy, CheckCircle2 } from 'lucide-react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import {
+  ArrowLeft,
+  Download,
+  Plus,
+  Trash2,
+  ScanFace,
+  AlertTriangle,
+  Copy,
+  CheckCircle2
+} from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge, StatusChip } from '@/components/ui/Badge'
@@ -10,38 +19,83 @@ import { Breadcrumb } from '@/components/ui/Controls'
 import { EmptyState } from '@/components/ui/Misc'
 import { attendanceSessionsMock, detectedFacesForSession } from '@/mock/attendance'
 import { toast } from 'sonner'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { handlefetchAttendanceResult, handleFetchStudentsBySessionId, handleMarkAction } from '../../../services/api/attendance/api'
 
 export default function AttendanceResult() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [result, setResult] = useState(null);
-  const apiResponse = {
-    facesDetected: 8,
-    imageUrl: "https://dummyimage.com/800x500",
-    results: [
-      {
-        studentId: 2,
-        studentName: "Jeff Bezos",
-        score: 0.6918292,
-        bbox: [302, 86, 404, 218]
-      },
-      {
-        studentId: 3,
-        studentName: "Mark Zuckerberg",
-        score: 0.729031,
-        bbox: [55, 53, 143, 174]
-      },
-      {
-        studentId: null,
-        studentName: "Unknown",
-        score: 0.07282513,
-        bbox: [177, 125, 260, 251]
-      }
-    ]
-  };
+  const [session, setSession] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [apiResponse, setApiResponse] = useState([])
+  // const apiResponse = {
+  //   facesDetected: 8,
+  //   imageUrl: "https://dummyimage.com/800x500",
+  //   results: [
+  //     {
+  //       studentId: 2,
+  //       studentName: "Jeff Bezos",
+  //       score: 0.6918292,
+  //       bbox: [302, 86, 404, 218]
+  //     },
+  //     {
+  //       studentId: 3,
+  //       studentName: "Mark Zuckerberg",
+  //       score: 0.729031,
+  //       bbox: [55, 53, 143, 174]
+  //     },
+  //     {
+  //       studentId: null,
+  //       studentName: "Unknown",
+  //       score: 0.07282513,
+  //       bbox: [177, 125, 260, 251]
+  //     }
+  //   ]
+  // };
   // After API call
   // setResult(response.data);
-  const session = attendanceSessionsMock.find((s) => s.id === id)
+  const fetchSession = async () => {
+    try {
+      const response = await handlefetchAttendanceResult(id);
+      console.log('Fetched session data:', response);
+      setSession(response);
+      // setResult(response.data);
+    } catch (error) {
+      console.error('Error fetching session data:', error);
+    }
+  };
+  const fetchStudents = async (id) => {
+    try {
+      const response = await handleFetchStudentsBySessionId(id);
+      console.log("handleFetchStudentsBySessionId Rsponse: ", response)
+      setApiResponse(response);
+    } catch (error) {
+      console.error(error)
+    }
+  }
+  const handleDelete = (id) => {
+    console.log("Delete session with ID:", id);
+    setDeleteDialogOpen(false);
+    navigate('/admin/attendance/sessions');
+  }
+  const handleAction = async (studentData) => {
+    try {
+      console.log(studentData)
+      const response = await handleMarkAction(studentData);
+      console.log("Handle Action Assign response:", response);
+      fetchStudents(id)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+  useEffect(() => {
+    if (!id) return;
+    if (!session) {
+      fetchSession();
+      fetchStudents(id)
+    }
+  }, [id], session);
 
   if (!session) {
     return <EmptyState title="Session not found" action={<Link to="/admin/attendance/sessions"><Button>Back to sessions</Button></Link>} />
@@ -61,10 +115,34 @@ export default function AttendanceResult() {
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight">{session.subject}</h1>
-          <p className="text-sm text-muted-foreground">{session.department} · {session.room} · {session.date}, {session.time}</p>
+          <h1 className="font-display text-2xl font-semibold tracking-tight">{session.sessionName}</h1>
+          <p className="text-sm text-muted-foreground">{session.courseName} {session.room} · {session.date}</p>
+          <span className="text-sm text-muted-foreground">{session.startTime} - {session.endTime},</span> <span className="text-sm ">{session.status}</span>
         </div>
-        <Button variant="outline" onClick={() => toast.success('Export started')}><Download className="h-4 w-4" /> Export attendance</Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/admin/recognition/' + session.id)}
+          >
+            {session.hasUploadedImage ? "Re-upload image" : "Add Image"}
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={() => setDeleteDialogOpen(true)}
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete
+          </Button>
+
+          {/* <Button
+            variant="outline"
+            onClick={() => toast.success("Export started")}
+          >
+            <Download className="h-4 w-4" />
+            Export
+          </Button> */}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
@@ -72,7 +150,7 @@ export default function AttendanceResult() {
           { label: 'Enrolled', value: session.totalStudents, accent: 'text-foreground' },
           { label: 'Present', value: session.present, accent: 'text-success' },
           { label: 'Absent', value: session.absent, accent: 'text-destructive' },
-          { label: 'Late', value: session.late, accent: 'text-warning' },
+          // { label: 'Late', value: session.late, accent: 'text-warning' },
           { label: 'AI accuracy', value: `${session.accuracy}%`, accent: 'text-primary' },
         ].map((s) => (
           <Card key={s.label} className="p-4 text-center">
@@ -143,119 +221,157 @@ export default function AttendanceResult() {
           </CardContent>
         </Card>
       </div> */}
+      {apiResponse.length != 0 && (
+        <Card>
+          <CardContent className="p-5">
+            <Tabs defaultValue="all">
+              <TabsList>
+                <TabsTrigger value="all">
+                  All ({apiResponse.length})
+                </TabsTrigger>
 
-      <Card>
-        <CardContent className="p-5">
-          <Tabs defaultValue="all">
-            <TabsList>
-              <TabsTrigger value="all">
-                All ({apiResponse.results.length})
-              </TabsTrigger>
+                <TabsTrigger value="unknown">
+                  Unknown (
+                  {
+                    apiResponse.filter(r => r.status === "ABSENT").length
+                  }
+                  )
+                </TabsTrigger>
 
-              <TabsTrigger value="unknown">
-                Unknown (
-                {
-                  apiResponse.results.filter(r => r.studentId === null).length
-                }
-                )
-              </TabsTrigger>
+                <TabsTrigger value="recognized">
+                  Recognized (
+                  {
+                    apiResponse.filter(r => r.status !== "ABSENT").length
+                  }
+                  )
+                </TabsTrigger>
+              </TabsList>
 
-              <TabsTrigger value="recognized">
-                Recognized (
-                {
-                  apiResponse.results.filter(r => r.studentId !== null).length
-                }
-                )
-              </TabsTrigger>
-            </TabsList>
+              {["all", "recognized", "unknown"].map((tab) => (
+                <TabsContent key={tab} value={tab}>
+                  <Table>
+                    <THead>
+                      <TR>
+                        <TH>Student</TH>
+                        <TH>Confidence</TH>
+                        <TH>Status</TH>
+                        <TH>Action</TH>
+                      </TR>
+                    </THead>
 
-            {["all", "recognized", "unknown"].map((tab) => (
-              <TabsContent key={tab} value={tab}>
-                <Table>
-                  <THead>
-                    <TR>
-                      <TH>Student</TH>
-                      <TH>Confidence</TH>
-                      <TH>Status</TH>
-                      <TH>Action</TH>
-                    </TR>
-                  </THead>
+                    <TBody>
+                      {apiResponse
+                        .filter(face => {
+                          if (tab === "all") return true;
+                          if (tab === "recognized") return face.status !== "ABSENT";
+                          if (tab === "unknown") return face.status === "ABSENT";
+                        })
+                        .map((face, index) => (
+                          <TR key={index}>
+                            <TD>
+                              <div className="flex items-center gap-2.5">
+                                <Avatar
+                                  name={face.studentName}
+                                  size={28}
+                                />
 
-                  <TBody>
-                    {apiResponse.results
-                      .filter(face => {
-                        if (tab === "all") return true;
-                        if (tab === "recognized") return face.studentId !== null;
-                        if (tab === "unknown") return face.studentId === null;
-                      })
-                      .map((face, index) => (
-                        <TR key={index}>
-                          <TD>
-                            <div className="flex items-center gap-2.5">
-                              <Avatar
-                                name={face.studentName}
-                                size={28}
-                              />
-
-                              <div>
-                                <div className="font-medium">
-                                  {face.studentName}
-                                </div>
-
-                                {face.studentId && (
-                                  <div className="text-xs text-muted-foreground">
-                                    Student ID: {face.studentId}
+                                <div>
+                                  <div className="font-medium">
+                                    {face.studentName}
                                   </div>
-                                )}
+
+                                  {face.studentId && (
+                                    <div className="text-xs text-muted-foreground">
+                                      Student ID: {face.studentId}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          </TD>
+                            </TD>
 
-                          <TD>
-                            {(face.score * 100).toFixed(2)}%
-                          </TD>
+                            <TD>
+                              {(face.confidence).toFixed(2)}%
+                            </TD>
 
-                          <TD>
-                            <StatusChip
-                              status={
-                                face.studentId
-                                  ? "present"
-                                  : "absent"
-                              }
-                              label={
-                                face.studentId
-                                  ? "recognized"
-                                  : "unknown"
-                              }
-                            />
-                          </TD>
-
-                          <TD>
-                            {face.studentId === null ? (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() =>
-                                  toast.info("Assign manually")
+                            <TD>
+                              <StatusChip
+                                status={
+                                  face.status === "ABSENT"
+                                    ? "present"
+                                    : "absent"
                                 }
-                              >
-                                Assign
-                              </Button>
-                            ) : (
-                              <span className="text-green-600 text-sm">
-                                ✓ Verified
-                              </span>
-                            )}
-                          </TD>
-                        </TR>
-                      ))}
-                  </TBody>
-                </Table>
-              </TabsContent>
-            ))}
-          </Tabs>
-        </CardContent>
-      </Card>
+                                label={
+                                  face.imageName
+                                    ? "recognized"
+                                    : "unknown"
+                                }
+                              />
+                            </TD>
+
+                            <TD>
+                              {face.status === "ABSENT" ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() =>
+                                    handleAction(face)
+                                  }
+                                >
+                                  Assign Present
+                                </Button>
+                              ) : (
+                                <span className="text-green-600 text-sm">
+                                  ✓ Present
+                                </span>
+                              )}
+                            </TD>
+                          </TR>
+                        ))}
+                    </TBody>
+                  </Table>
+                </TabsContent>
+              ))}
+            </Tabs>
+          </CardContent>
+        </Card>
+      )}
+      {deleteDialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-xl bg-white shadow-2xl">
+            <div className="border-b px-6 py-4">
+              <h2 className="text-lg font-semibold">
+                Delete Attendance Session
+              </h2>
+            </div>
+
+            <div className="px-6 py-4">
+              <p className="text-sm text-gray-600">
+                Are you sure you want to delete this attendance session?
+              </p>
+
+              <p className="mt-2 text-sm text-red-600 font-medium">
+                This action cannot be undone.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-3 border-t px-6 py-4">
+              <button
+                onClick={() => setDeleteDialogOpen(false)}
+                className="rounded-lg border px-4 py-2 text-sm hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleDelete}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/Table";
 import { Breadcrumb } from "@/components/ui/Controls";
 import { toast } from "sonner";
-import { handleFetchCourses } from "../../../services/api/class/api";
+import { handleFetchCourses } from "../../../services/api/course/api";
 import instance from "../../../services/api/instance";
 
 
