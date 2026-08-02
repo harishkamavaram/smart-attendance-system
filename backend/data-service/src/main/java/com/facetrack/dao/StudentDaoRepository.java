@@ -11,5 +11,7 @@ import com.facetrack.models.Student;
 public interface StudentDaoRepository extends JpaRepository<Student, Long> {
 
     List<Student> findByInstituteId(Long instituteId);
+    
+    long countByCourseId(Long courseId);
 
 }

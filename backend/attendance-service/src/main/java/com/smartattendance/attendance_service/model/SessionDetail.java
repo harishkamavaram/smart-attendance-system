@@ -1,54 +1,67 @@
 package com.smartattendance.attendance_service.model;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "session_details")
 public class SessionDetail {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
 
-	@NotNull(message = "Session ID is required")
-    @Column(name = "session_id")
-    private Long sessionId;  
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @NotBlank(message = "Course is required")
-    private String course;
+    @NotNull(message = "Course ID is required")
+    private Long courseId;
 
-    @NotBlank(message = "Section is required")
-    private String section;
+    @NotNull(message = "Section ID is required")
+    private Long sectionId;
+
+    @NotBlank(message = "Course name is required")
+    private String courseName;
+
+    @NotBlank(message = "Section name is required")
+    private String sectionName;
+
+    @NotBlank(message = "Session name is required")
+    private String sessionName;
 
     @NotNull(message = "Date is required")
     private LocalDate date;
 
-    private String time;
+    @NotNull(message = "Start time is required")
+    private LocalTime startTime;
+
+    @NotNull(message = "End time is required")
+    private LocalTime endTime;
 
     private String room;
+    
+    private boolean hasUploadedImage = false;
 
     @Column(name = "total_students")
-    private Integer totalStudents;
+    private Integer totalStudents = 0;
 
-    private Integer present;
+    private Integer present = 0;
 
-    private Integer absent;
+    private Integer absent = 0;
 
-   
+    private Double accuracy = 0.0;
 
-    private String status;
+    private String status = "Scheduled"; // Scheduled, In Progress, Completed
 
-    private Double accuracy;
     
-    
+	public boolean isHasUploadedImage() {
+		return hasUploadedImage;
+	}
+
+	public void setHasUploadedImage(boolean hasUploadedImage) {
+		this.hasUploadedImage = hasUploadedImage;
+	}
 
 	public Long getId() {
 		return id;
@@ -58,28 +71,44 @@ public class SessionDetail {
 		this.id = id;
 	}
 
-	public Long getSessionId() {
-		return sessionId;
+	public Long getCourseId() {
+		return courseId;
 	}
 
-	public void setSessionId(Long sessionId) {
-		this.sessionId = sessionId;
+	public void setCourseId(Long courseId) {
+		this.courseId = courseId;
 	}
 
-	public String getCourse() {
-		return course;
+	public Long getSectionId() {
+		return sectionId;
 	}
 
-	public void setCourse(String course) {
-		this.course = course;
+	public void setSectionId(Long sectionId) {
+		this.sectionId = sectionId;
 	}
 
-	public String getSection() {
-		return section;
+	public String getCourseName() {
+		return courseName;
 	}
 
-	public void setSection(String section) {
-		this.section = section;
+	public void setCourseName(String courseName) {
+		this.courseName = courseName;
+	}
+
+	public String getSectionName() {
+		return sectionName;
+	}
+
+	public void setSectionName(String sectionName) {
+		this.sectionName = sectionName;
+	}
+
+	public String getSessionName() {
+		return sessionName;
+	}
+
+	public void setSessionName(String sessionName) {
+		this.sessionName = sessionName;
 	}
 
 	public LocalDate getDate() {
@@ -90,12 +119,20 @@ public class SessionDetail {
 		this.date = date;
 	}
 
-	public String getTime() {
-		return time;
+	public LocalTime getStartTime() {
+		return startTime;
 	}
 
-	public void setTime(String time) {
-		this.time = time;
+	public void setStartTime(LocalTime startTime) {
+		this.startTime = startTime;
+	}
+
+	public LocalTime getEndTime() {
+		return endTime;
+	}
+
+	public void setEndTime(LocalTime endTime) {
+		this.endTime = endTime;
 	}
 
 	public String getRoom() {
@@ -130,7 +167,13 @@ public class SessionDetail {
 		this.absent = absent;
 	}
 
-	
+	public Double getAccuracy() {
+		return accuracy;
+	}
+
+	public void setAccuracy(Double accuracy) {
+		this.accuracy = accuracy;
+	}
 
 	public String getStatus() {
 		return status;
@@ -139,12 +182,8 @@ public class SessionDetail {
 	public void setStatus(String status) {
 		this.status = status;
 	}
-
-	public Double getAccuracy() {
-		return accuracy;
-	}
-
-	public void setAccuracy(Double accuracy) {
-		this.accuracy = accuracy;
-	}
+    
+    
+    
+    
 }

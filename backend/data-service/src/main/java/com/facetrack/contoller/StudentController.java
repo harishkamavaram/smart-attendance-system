@@ -42,14 +42,6 @@ public class StudentController {
 	@Autowired
 	private StudentDaoRepository studentDAO;
 
-//	@GetMapping
-//	public ResponseEntity<ApiResponse<List<StudentResponseDTO>>> getAllStudents() {
-//
-//		List<StudentResponseDTO> students = studentDAO.findAll().stream().map(this::toDTO).toList();
-//
-//		return ResponseEntity.ok(ResponseUtil.success("Students fetched successfully.", students));
-//	}
-
 	@GetMapping("/find/{id}")
 	public ResponseEntity<ApiResponse<StudentResponseDTO>> getStudent(@PathVariable Long id) {
 
@@ -82,8 +74,38 @@ public class StudentController {
 	    );
 	}
 
-	
+	@DeleteMapping("/{id}")
+	public ResponseEntity<ApiResponse<Void>> deleteStudent(@PathVariable Long id) {
 
+		if (!studentDAO.existsById(id)) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ResponseUtil.error("Student not found."));
+		}
+
+		studentDAO.deleteById(id);
+
+		return ResponseEntity.ok(ResponseUtil.success("Student deleted successfully."));
+	}
+	
+	@GetMapping("/count/course/{courseId}")
+	public ResponseEntity<ApiResponse<Long>> getStudentCountByCourseId(@PathVariable Long courseId) {
+
+	    long count = studentDAO.countByCourseId(courseId);
+
+	    return ResponseEntity.ok(
+	            ResponseUtil.success("Student count fetched successfully.", count)
+	    );
+	}
+
+
+//	@GetMapping
+//	public ResponseEntity<ApiResponse<List<StudentResponseDTO>>> getAllStudents() {
+//
+//		List<StudentResponseDTO> students = studentDAO.findAll().stream().map(this::toDTO).toList();
+//
+//		return ResponseEntity.ok(ResponseUtil.success("Students fetched successfully.", students));
+//	}
+
+	
 //	@PutMapping("/{id}")
 //	public ResponseEntity<ApiResponse<Student>> updateStudent(@PathVariable Long id, @RequestBody Student student) {
 //
@@ -121,15 +143,5 @@ public class StudentController {
 //		return ResponseEntity.ok(ResponseUtil.success("Student updated successfully.", updated));
 //	}
 
-	@DeleteMapping("/{id}")
-	public ResponseEntity<ApiResponse<Void>> deleteStudent(@PathVariable Long id) {
-
-		if (!studentDAO.existsById(id)) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ResponseUtil.error("Student not found."));
-		}
-
-		studentDAO.deleteById(id);
-
-		return ResponseEntity.ok(ResponseUtil.success("Student deleted successfully."));
-	}
+	
 }

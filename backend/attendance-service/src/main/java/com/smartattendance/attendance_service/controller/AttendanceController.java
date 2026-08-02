@@ -15,41 +15,45 @@ import com.smartattendance.attendance_service.model.Attendance;
 import com.smartattendance.attendance_service.service.AttendanceService;
 
 @RestController
-@RequestMapping("/api/attendance")
+@RequestMapping("/api/v1/attendance")
 public class AttendanceController {
 
-	
-	
-
-	    @Autowired
-	    private AttendanceService attendanceService;
+	@Autowired
+	private AttendanceService attendanceService;
 
 //	    @PostMapping("/mark")
 //	    public Attendance mark(@RequestBody Attendance attendance) {
 //	        return attendanceService.markAttendance(attendance);
 //	    }
-	    @PostMapping("/mark")
-	    public ResponseEntity<?> mark(@RequestBody Attendance attendance) {
-	        try {
-	            Attendance saved = attendanceService.markAttendance(attendance);
-	            return ResponseEntity.ok(saved);
-	        } catch (RuntimeException ex) {
-	            return ResponseEntity.badRequest().body(ex.getMessage());
-	        }
-	    }
+	@PostMapping("/mark")
+	public ResponseEntity<?> mark(@RequestBody Attendance attendance) {
+		try {
+			Attendance saved = attendanceService.markAttendance(attendance);
+			return ResponseEntity.ok(saved);
+		} catch (Exception ex) {
+			ex.printStackTrace(); // <-- This prints the actual exception
+			return ResponseEntity.badRequest().body(ex.getMessage());
+		}
+	}
 
-	    @GetMapping("/all")
-	    public List<Attendance> getAll() {
-	        return attendanceService.getAllAttendance();
-	    }
+	@GetMapping("/all")
+	public List<Attendance> getAll() {
+		return attendanceService.getAllAttendance();
+	}
 
-	    @GetMapping("/student/{studentId}")
-	    public List<Attendance> getByStudent(@PathVariable String studentId) {
-	        return attendanceService.getByStudentId(studentId);
-	    }
-	    @GetMapping("/percentage/{studentId}")
-	    public double getPercentage(@PathVariable String studentId) {
-	        return attendanceService.getAttendancePercentage(studentId);
-	    }
-	   
+	@GetMapping("/students/session/{sessionId}")
+	public List<Attendance> getStudentsBySessionId(@PathVariable Long sessionId) {
+		return attendanceService.getStudentsBySessionId(sessionId);
+	}
+
+	@GetMapping("/student/{studentId}")
+	public List<Attendance> getByStudent(@PathVariable String studentId) {
+		return attendanceService.getByStudentId(studentId);
+	}
+
+	@GetMapping("/percentage/{studentId}")
+	public double getPercentage(@PathVariable String studentId) {
+		return attendanceService.getAttendancePercentage(studentId);
+	}
+
 }

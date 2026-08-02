@@ -2,7 +2,6 @@ package com.smartattendance.attendance_service.model;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -12,73 +11,126 @@ import jakarta.validation.constraints.NotNull;
 @Table(name = "attendance")
 public class Attendance {
 
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @NotNull()
-    
-    @Column(name = "student_id", nullable = false , length = 50)
-    private String studentId;
+
+    // Attendance session
+    @NotNull(message = "Session ID is required")
+    @Column(name = "session_id", nullable = false)
+    private Long sessionId;
+
+    // Student details
+    @NotNull(message = "Student ID is required")
+    @Column(name = "student_id", nullable = false)
+    private Long studentId;
+
     @NotBlank
-    private String subject;
+    @Column(name = "student_name", nullable = false)
+    private String studentName;
 
-    @Column(name = "attendance_date")
-    private LocalDate attendanceDate;
+    // Face recognition confidence (0-100 or 0-1 based on your AI service)
+    @Column(nullable = false)
+    private Double confidence;
 
-    @Column(name = "attendance_time")
-    private LocalTime attendanceTime;
+    // PRESENT / ABSENT / LATE / UNKNOWN
+    @NotBlank
+    @Column(nullable = false)
+    private String status;
 
-    private String status; 
+    // Time when attendance was recorded
+    @Column(name = "marked_at", nullable = false)
+    private LocalDateTime markedAt;
+
+    // Optional: faculty/admin who started the session
     @Column(name = "marked_by")
     private Long markedBy;
 
-    private LocalDateTime createdAt;
-
-//    @PrePersist
-//    protected void onCreate() {
-//        attendanceDate = LocalDate.now();
-//        attendanceTime = LocalTime.now();
-//        createdAt = LocalDateTime.now();
-//    }
+    // Optional: image filename used for recognition
+    @Column(name = "image_name")
+    private String imageName;
     
+    @Column(name = "attendance_date") 
+    private LocalDate attendanceDate;
+
     @PrePersist
     protected void onCreate() {
-        if (attendanceDate == null) {
-            attendanceDate = LocalDate.now();   
-        }
-        
-
-        attendanceTime = LocalTime.now();       
-        createdAt = LocalDateTime.now();
+        markedAt = LocalDateTime.now();
     }
-    
-   
-    
 
-	public Long getId() { 
-		return id;
-	}
+    // Getters & Setters
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public String getStudentId() {
-		return studentId;
-	}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-	public void setStudentId(String studentId) {
-		this.studentId = studentId;
-	}
+    public Long getSessionId() {
+        return sessionId;
+    }
 
-	public String getSubject() {
-		return subject;
-	}
+    public void setSessionId(Long sessionId) {
+        this.sessionId = sessionId;
+    }
 
-	public void setSubject(String subject) {
-		this.subject = subject;
-	}
+    public Long getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(Long studentId) {
+        this.studentId = studentId;
+    }
+
+    public String getStudentName() {
+        return studentName;
+    }
+
+    public void setStudentName(String studentName) {
+        this.studentName = studentName;
+    }
+
+    public Double getConfidence() {
+        return confidence;
+    }
+
+    public void setConfidence(Double confidence) {
+        this.confidence = confidence;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getMarkedAt() {
+        return markedAt;
+    }
+
+    public void setMarkedAt(LocalDateTime markedAt) {
+        this.markedAt = markedAt;
+    }
+
+    public Long getMarkedBy() {
+        return markedBy;
+    }
+
+    public void setMarkedBy(Long markedBy) {
+        this.markedBy = markedBy;
+    }
+
+    public String getImageName() {
+        return imageName;
+    }
+
+    public void setImageName(String imageName) {
+        this.imageName = imageName;
+    }
 
 	public LocalDate getAttendanceDate() {
 		return attendanceDate;
@@ -87,38 +139,5 @@ public class Attendance {
 	public void setAttendanceDate(LocalDate attendanceDate) {
 		this.attendanceDate = attendanceDate;
 	}
-
-	public LocalTime getAttendanceTime() {
-		return attendanceTime;
-	}
-
-	public void setAttendanceTime(LocalTime attendanceTime) {
-		this.attendanceTime = attendanceTime;
-	}
-
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	}
-
-	public Long getMarkedBy() {
-		return markedBy;
-	}
-
-	public void setMarkedBy(Long markedBy) {
-		this.markedBy = markedBy;
-	}
-
-	public LocalDateTime getCreatedAt() {
-		return createdAt;
-	}
-
-	public void setCreatedAt(LocalDateTime createdAt) {
-		this.createdAt = createdAt;
-	}
     
-
 }

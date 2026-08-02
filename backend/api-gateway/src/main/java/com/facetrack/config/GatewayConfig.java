@@ -45,9 +45,9 @@ public class GatewayConfig {
                 .route("image-service", r -> r
                         .path("/api/v1/images/**")
                         .filters(f -> f
-                                .setRequestHeader(
-                                        "Host",
-                                        "harishkamavaram--smart-attendance-image-service-fastapi-app.modal.run")
+//                                .setRequestHeader(
+//                                        "Host",
+//                                        "harishkamavaram--smart-attendance-image-service-fastapi-app.modal.run")
                         // .filter(authFilter.apply(new AuthenticationFilter.Config()))
                         )
                         .uri("https://harishkamavaram--smart-attendance-image-service-fastapi-app.modal.run"

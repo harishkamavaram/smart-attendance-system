@@ -2,6 +2,7 @@ package com.smartattendance.attendance_service.service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,23 +14,27 @@ import com.smartattendance.attendance_service.repository.AttendanceRepository;
 public class AttendanceService {
 	 @Autowired
 	    private AttendanceRepository attendanceRepository;
-	 public Attendance markAttendance(Attendance attendance) {
-	        // FR-012: Duplicate Check
-	        boolean alreadyExists = attendanceRepository
-	                .findByStudentIdAndSubjectAndAttendanceDate(
-	                        attendance.getStudentId(),
-	                        attendance.getSubject(),
-	                        attendance.getAttendanceDate() != null ? attendance.getAttendanceDate() : java.time.LocalDate.now()
-	                ).isPresent();
+	 
+		public Attendance markAttendance(Attendance attendance) {
 
-	        if (alreadyExists) {
-	            throw new RuntimeException("Attendance already marked for student " + attendance.getStudentId() + " for subject " + attendance.getSubject() + " today");
-	        }
+			Optional<Attendance> existing = attendanceRepository.findBySessionIdAndStudentId(attendance.getSessionId(),
+					attendance.getStudentId());
 
-	        attendance.setStatus("PRESENT");
-	        return attendanceRepository.save(attendance);
-	    }
+			if (existing.isPresent()) {
 
+				Attendance old = existing.get();
+
+				old.setStatus("PRESENT");
+
+				return attendanceRepository.save(old);
+			}
+
+			return attendanceRepository.save(attendance);
+		}
+	 	
+	 public List<Attendance> getStudentsBySessionId(Long sessionId){
+		 return attendanceRepository.findBySessionId(sessionId);
+	 }
 	    public List<Attendance> getAllAttendance() {
 	        return attendanceRepository.findAll();
 	    }
@@ -38,17 +43,17 @@ public class AttendanceService {
 	        return attendanceRepository.findByStudentId(studentId);
 	    }
 	    
-	    public long getTotalPresentByStudentAndSubject(Long studentId, String subject) {
-	        return attendanceRepository.countByStudentIdAndSubjectAndStatus(studentId, subject, "PRESENT");
+	    public long getTotalPresentByStudentAndSubject(Long studentId) {
+	        return attendanceRepository.countByStudentIdAndStatus(studentId, "PRESENT");
 	    }
 	    
 	    public List<Attendance> getByDate(LocalDate date) {
 	        return attendanceRepository.findByAttendanceDate(date);
 	    }
 
-	    public List<Attendance> getReport(String studentId, String subject, LocalDate startDate, LocalDate endDate) {
+	    public List<Attendance> getReport(String studentId, LocalDate startDate, LocalDate endDate) {
 	        
-	    	return attendanceRepository.findByStudentIdAndSubject(studentId, subject)
+	    	return attendanceRepository.findByStudentId(studentId)
 	                .stream()
 	                .filter(a -> !a.getAttendanceDate().isBefore(startDate) && !a.getAttendanceDate().isAfter(endDate))
 	                .toList();

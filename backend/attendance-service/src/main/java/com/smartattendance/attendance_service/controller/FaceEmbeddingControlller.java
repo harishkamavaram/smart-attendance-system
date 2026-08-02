@@ -17,7 +17,7 @@ import com.smartattendance.attendance_service.model.FaceEmbedding;
 import com.smartattendance.attendance_service.service.FaceEmbeddingService;
 
 @RestController
-@RequestMapping("/api/detected-faces")
+@RequestMapping("/api/v1/attendance/detected-faces")
 public class FaceEmbeddingControlller {
 
 	@Autowired

@@ -9,25 +9,28 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.smartattendance.attendance_service.model.Attendance;
 
 public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
+
+	Optional<Attendance> findByStudentIdAndAttendanceDate(String string,
+			LocalDate attendanceDate);
 	
-	 Optional<Attendance> findByStudentIdAndSubjectAndAttendanceDate(String string, String subject, LocalDate attendanceDate);
+	List<Attendance> findBySessionId(Long sessionId);
+	
+	List<Attendance> findByStudentId(String studentId);
 
-	    List<Attendance> findByStudentId(String studentId);
+	List<Attendance> findByAttendanceDate(LocalDate attendanceDate);
 
-	    List<Attendance> findByAttendanceDate(LocalDate attendanceDate);
 
-	    List<Attendance> findBySubject(String subject);
-	    
-    long countByStudentIdAndSubjectAndStatus(Long studentId, String subject, String status);
-	    
-	    List<Attendance> findByStudentIdAndSubject(String studentId, String subject);
+	long countByStudentIdAndStatus(Long studentId, String status);
 
-	    List<Attendance> findByAttendanceDateBetween(LocalDate startDate, LocalDate endDate);
 
-	    long countByStudentIdAndSubject(String studentId, String subject);
-	    
-	    long countByStudentId(String studentId);
+	List<Attendance> findByAttendanceDateBetween(LocalDate startDate, LocalDate endDate);
 
-	    long countByStudentIdAndStatus(String studentId, String status);
+	long countByStudentId(String studentId);
+
+	long countByStudentIdAndStatus(String studentId, String status);
+
+	Optional<Attendance> findByStudentIdAndAttendanceDate(Long studentId, LocalDate attendanceDate);
+
+	Optional<Attendance>  findBySessionIdAndStudentId(Long sessionId, Long studentId);
 
 }

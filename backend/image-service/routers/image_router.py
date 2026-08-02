@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, File, Form, UploadFile, HTTPException, R
 from fastapi.responses import FileResponse
 from typing import List
 from pathlib import Path
+import modal
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from services.database import get_db
@@ -12,6 +13,7 @@ from services.helpers import insert_images_to_modal
 
 router = APIRouter(prefix="/api/v1/images", tags=["Image-service"])
 
+Volume=modal.Volume.from_name("uploaded-images")
 IMAGE_DIR = Path("/images")
 
 @router.post("/insertStudentImages")
@@ -94,11 +96,9 @@ async def upload_images(files: List[UploadFile] = File(...)):
 # Get Image By URL For Client
 @router.get("/{filename}")
 async def get_image(filename: str):
-    # print("Directory exists:", IMAGE_DIR.exists())
-    # print("Files:", os.listdir(IMAGE_DIR))
+    Volume.reload()
 
     file_path = IMAGE_DIR / filename
-    # print("Looking for:", file_path)
 
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Image not found")

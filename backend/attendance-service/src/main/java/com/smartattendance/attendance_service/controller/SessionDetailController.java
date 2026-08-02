@@ -19,7 +19,7 @@ import com.smartattendance.attendance_service.service.SessionDetailService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/session-details")
+@RequestMapping("/api/v1/attendance/session-details")
 public class SessionDetailController {
 
 	@Autowired
@@ -34,7 +34,7 @@ public class SessionDetailController {
         }
     }
 
-    @GetMapping("/all")
+    @GetMapping
     public List<SessionDetail> getAll() {
         return sessionDetailService.getAllSessionDetails();
     }

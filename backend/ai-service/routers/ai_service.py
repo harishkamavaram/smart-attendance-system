@@ -41,8 +41,9 @@ class FaceRequest(BaseModel):
     courseId: int
     sectionId: str
     imageUrl: str
-    isFirstimage : bool
+    isFirstImage : bool
     adminId: int
+    totalStudents: int
 
 class StudentRequest(BaseModel):
     studentId: int
@@ -156,71 +157,47 @@ async def identify_all_faces(request: FaceRequest,db: Session = Depends(get_db))
     t = time.perf_counter()
     cv2.imwrite(str(output_path), img)
     print("Save image:", time.perf_counter() - t)
-    
+        
     t = time.perf_counter()
-    if request.isFirstimage:
-        fetch_students_query = text("""
+
+    if request.isFirstImage:
+        insert_query = text("""
+            INSERT INTO attendance (
+                session_id,
+                student_id,
+                student_name,
+                confidence,
+                status,
+                attendance_date,
+                marked_at,
+                image_name,
+                marked_by
+            )
             SELECT
+                :session_id,
                 id,
-                first_name,
-                last_name
+                CONCAT(first_name, ' ', last_name),
+                0.0,
+                'ABSENT',
+                CURRENT_DATE,
+                NOW(),
+                NULL,
+                :marked_by
             FROM students
             WHERE course_id = :course_id
         """)
-            # AND section = :section
-            # AND is_active = true
-            
-        students = db.execute(
-            fetch_students_query,
-            {
-                "course_id": request.courseId,
-                # "section": request.sectionId
-            }
-        ).mappings().all()
-        
-        insert_query = text("""
-                INSERT INTO attendance (
-                    session_id,
-                    student_id,
-                    student_name,
-                    confidence,
-                    status,
-                    attendance_date,
-                    marked_at,
-                    image_name,
-                    marked_by
-                )
-                VALUES (
-                    :session_id,
-                    :student_id,
-                    :student_name,
-                    :confidence,
-                    :status,
-                    :attendance_date,
-                    :marked_at,
-                    :image_name,
-                    :marked_by
-                )
-            """)
 
-        for student in students:
-            print(f"Student Id: {student['id']}, Student Name: {student['first_name']} {student['last_name']}")
-            db.execute(
-                insert_query,
-                {
-                    "session_id": request.sessionId,
-                    "student_id": student["id"],
-                    "student_name": f"{student['first_name']} {student['last_name']}",
-                    "confidence": 0.0,
-                    "status": "ABSENT",
-                    "attendance_date": date.today(),
-                    "marked_at": datetime.now(),
-                    "image_name": None,
-                    "marked_by": request.adminId,
-                },
-            )
+        db.execute(
+            insert_query,
+            {
+                "session_id": request.sessionId,
+                "course_id": request.courseId,
+                "marked_by": request.adminId,
+            },
+        )
 
         db.commit()
+
     print("DB:", time.perf_counter() - t)
     
     update_query = text("""
@@ -234,11 +211,16 @@ async def identify_all_faces(request: FaceRequest,db: Session = Depends(get_db))
                 session_id = :session_id
                 AND student_id = :student_id
             """)
-
+    
+    presentCounter = 0
+    totalFaces = len(faces)
+    
     for result in results:
         if result["studentId"] is None:
             continue
         print(f"Student Id: {result["studentId"]}, Student Name: {result["score"]}")
+        presentCounter = presentCounter + 1
+        
         db.execute(
             update_query,
             {
@@ -251,6 +233,75 @@ async def identify_all_faces(request: FaceRequest,db: Session = Depends(get_db))
         )
 
     db.commit()
+    
+    insert_query = text("""
+                INSERT INTO attendance_image_sessions (
+                    institute_id,
+                    course_id,
+                    section_id,
+                    session_id,
+                    image_url,
+                    uploaded_image_url,
+                    is_first_image
+                )
+                VALUES (
+                    :institute_id,
+                    :course_id,
+                    :section_id,
+                    :session_id,
+                    :image_url,
+                    :uploaded_image_url,
+                    :is_first_image
+                )
+            """)
+    
+    db.execute(
+        insert_query,
+        {
+            "institute_id": request.adminId,
+            "course_id": request.courseId,
+            "section_id": request.sectionId,
+            "session_id": request.sessionId,
+            "image_url": request.imageUrl,
+            "uploaded_image_url": request.imageUrl,
+            "is_first_image": request.isFirstImage,
+        }
+    )
+
+    db.commit()
+    
+    
+    present_count = presentCounter
+    absent_count = request.totalStudents - present_count
+    
+    session_update_query = text("""
+            UPDATE session_details
+            SET
+                has_uploaded_image = TRUE,
+                present = :present,
+                absent = :absent,
+                accuracy = :accuracy,
+                status = :status
+            WHERE
+                id = :session_id
+        """)
+    # print("Length of results: ",len(results))
+    # print("Total faces: ",totalFaces)
+    accuracy = round((presentCounter / totalFaces) * 100, 2) if totalFaces > 0 else 0.0
+    
+    db.execute(
+            session_update_query,
+            {
+                "session_id": request.sessionId,
+                "present": present_count,
+                "absent": absent_count,
+                "accuracy": accuracy,
+                "status": "Completed"
+            }
+        )
+
+    db.commit()
+    
     print("TOTAL: ", time.perf_counter() - t)
     return {
         # "sessionId": str(uuid4()),
