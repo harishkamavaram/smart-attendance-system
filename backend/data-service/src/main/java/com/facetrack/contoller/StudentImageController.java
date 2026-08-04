@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.facetrack.dao.StudentImageDaoRepository;
-import com.facetrack.data_service.payload.ApiResponse;
+import com.facetrack.data_service.util.ApiResponse;
 import com.facetrack.data_service.util.ResponseUtil;
 import com.facetrack.dto.StudentImageResponseDTO;
 import com.facetrack.models.StudentImage;

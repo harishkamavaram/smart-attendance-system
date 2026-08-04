@@ -1,7 +1,12 @@
 package com.facetrack.models;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -22,6 +27,9 @@ public class Institute extends BaseEntity {
 
 	@Column(nullable = false, length = 500)
 	private String address;
+
+	@OneToMany(mappedBy = "institute", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<InstituteLocation> locations = new ArrayList<>();
 
 	public Institute() {
 		super();
@@ -81,7 +89,5 @@ public class Institute extends BaseEntity {
 		return "Institute [name=" + name + ", instituteCode=" + instituteCode + ", email=" + email + ", mobileNumber="
 				+ mobileNumber + ", address=" + address + "]";
 	}
-
-	
 
 }

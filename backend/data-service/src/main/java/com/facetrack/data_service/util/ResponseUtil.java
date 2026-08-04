@@ -1,17 +1,12 @@
 package com.facetrack.data_service.util;
 
-import java.time.LocalDateTime;
-
-import com.facetrack.data_service.payload.ApiResponse;
-
 public class ResponseUtil {
 
     public static <T> ApiResponse<T> success(String message, T data) {
         return new ApiResponse<>(
                 true,
                 message,
-                data,
-                LocalDateTime.now()
+                data
         );
     }
 
@@ -19,8 +14,7 @@ public class ResponseUtil {
         return new ApiResponse<>(
                 true,
                 message,
-                null,
-                LocalDateTime.now()
+                null
         );
     }
 
@@ -28,8 +22,7 @@ public class ResponseUtil {
         return new ApiResponse<>(
                 false,
                 message,
-                null,
-                LocalDateTime.now()
+                null
         );
     }
 }

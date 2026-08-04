@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.HttpStatus;
 
 import com.facetrack.dao.CourseDaoRepository;
-import com.facetrack.data_service.payload.ApiResponse;
+import com.facetrack.data_service.util.ApiResponse;
 import com.facetrack.data_service.util.ResponseUtil;
 import com.facetrack.models.Course;
 

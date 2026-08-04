@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.facetrack.dao.FileUploadHistoryDaoRepository;
-import com.facetrack.data_service.payload.ApiResponse;
+import com.facetrack.data_service.util.ApiResponse;
 import com.facetrack.data_service.util.ResponseUtil;
 import com.facetrack.dto.FileUploadHistoryResponseDTO;
 import com.facetrack.models.FileUploadHistory;

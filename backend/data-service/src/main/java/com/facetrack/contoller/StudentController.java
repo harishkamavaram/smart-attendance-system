@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.facetrack.dao.StudentDaoRepository;
-import com.facetrack.data_service.payload.ApiResponse;
+import com.facetrack.data_service.util.ApiResponse;
 import com.facetrack.data_service.util.ResponseUtil;
 import com.facetrack.dto.StudentResponseDTO;
 import com.facetrack.models.Student;
@@ -53,25 +53,20 @@ public class StudentController {
 
 		return ResponseEntity.ok(ResponseUtil.success("Student fetched successfully.", toDTO(student.get())));
 	}
-	
+
 	@GetMapping("/{instituteId}")
 	public ResponseEntity<ApiResponse<List<StudentResponseDTO>>> getStudentsByInstitute(
-	        @PathVariable Long instituteId) {
+			@PathVariable Long instituteId) {
 
-	    List<Student> students = studentDAO.findByInstituteId(instituteId);
+		List<Student> students = studentDAO.findByInstituteId(instituteId);
 
-	    if (students.isEmpty()) {
-	        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-	                .body(ResponseUtil.error("No students found."));
-	    }
+		if (students.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ResponseUtil.error("No students found."));
+		}
 
-	    List<StudentResponseDTO> response = students.stream()
-	            .map(this::toDTO)
-	            .toList();
+		List<StudentResponseDTO> response = students.stream().map(this::toDTO).toList();
 
-	    return ResponseEntity.ok(
-	            ResponseUtil.success("Students fetched successfully.", response)
-	    );
+		return ResponseEntity.ok(ResponseUtil.success("Students fetched successfully.", response));
 	}
 
 	@DeleteMapping("/{id}")
@@ -85,17 +80,14 @@ public class StudentController {
 
 		return ResponseEntity.ok(ResponseUtil.success("Student deleted successfully."));
 	}
-	
+
 	@GetMapping("/count/course/{courseId}")
 	public ResponseEntity<ApiResponse<Long>> getStudentCountByCourseId(@PathVariable Long courseId) {
 
-	    long count = studentDAO.countByCourseId(courseId);
+		long count = studentDAO.countByCourseId(courseId);
 
-	    return ResponseEntity.ok(
-	            ResponseUtil.success("Student count fetched successfully.", count)
-	    );
+		return ResponseEntity.ok(ResponseUtil.success("Student count fetched successfully.", count));
 	}
-
 
 //	@GetMapping
 //	public ResponseEntity<ApiResponse<List<StudentResponseDTO>>> getAllStudents() {
@@ -105,7 +97,6 @@ public class StudentController {
 //		return ResponseEntity.ok(ResponseUtil.success("Students fetched successfully.", students));
 //	}
 
-	
 //	@PutMapping("/{id}")
 //	public ResponseEntity<ApiResponse<Student>> updateStudent(@PathVariable Long id, @RequestBody Student student) {
 //
@@ -143,5 +134,4 @@ public class StudentController {
 //		return ResponseEntity.ok(ResponseUtil.success("Student updated successfully.", updated));
 //	}
 
-	
 }

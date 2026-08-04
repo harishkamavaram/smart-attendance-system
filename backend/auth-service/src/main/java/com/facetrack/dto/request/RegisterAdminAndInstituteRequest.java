@@ -11,6 +11,10 @@ public record RegisterAdminAndInstituteRequest(
 
     @NotNull(message = "Super admin details are required")
     @Valid
-    CreateSuperAdminRequest superAdmin
+    CreateSuperAdminRequest superAdmin,
+
+    @NotNull(message = "Location details are required")
+    @Valid
+    CreateInstituteLocationRequest location
 
 ) {}

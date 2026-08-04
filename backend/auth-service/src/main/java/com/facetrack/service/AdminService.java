@@ -17,6 +17,7 @@ import org.springframework.validation.annotation.Validated;
 import com.facetrack.dao.AdminDaoRepository;
 import com.facetrack.dao.ForgotPasswordOTPDaoRepository;
 import com.facetrack.dao.InstituteDaoRepository;
+import com.facetrack.dao.InstituteLocationDaoRepository;
 import com.facetrack.dao.RefreshTokenDaoRepository;
 import com.facetrack.dao.ResetPasswordTokenDaoRepository;
 import com.facetrack.dao.VerificationTokenDaoRepository;
@@ -47,6 +48,7 @@ import com.facetrack.exceptions.UnauthorizedException;
 import com.facetrack.helpers.EmailHelpers;
 import com.facetrack.models.Admin;
 import com.facetrack.models.Institute;
+import com.facetrack.models.InstituteLocation;
 import com.facetrack.models.redis.ForgotPasswordOTP;
 import com.facetrack.models.redis.RefreshToken;
 import com.facetrack.models.redis.ResetPasswordToken;
@@ -67,6 +69,8 @@ public class AdminService {
 	private AdminDaoRepository adminDAO;
 	@Autowired
 	private InstituteDaoRepository instituteDAO;
+	@Autowired
+	private InstituteLocationDaoRepository instituteLocationDAO;
 	@Autowired
 	private VerificationTokenDaoRepository verificationTokenDAO;
 	@Autowired
@@ -115,7 +119,16 @@ public class AdminService {
 		institute.setAddress(adminAndInstitute.institute().address());
 
 		Institute responseInstitute = instituteDAO.save(institute);
+		InstituteLocation instituteLocation = new InstituteLocation();
 
+		instituteLocation.setInstitute(responseInstitute);
+		instituteLocation.setLatitude(adminAndInstitute.location().latitude());
+		instituteLocation.setLongitude(adminAndInstitute.location().longitude());
+		instituteLocation.setAllowedRadius(adminAndInstitute.location().allowedRadius());
+		instituteLocation.setLocationName(adminAndInstitute.location().locationName());
+
+		InstituteLocation responseLocation = instituteLocationDAO.save(instituteLocation);
+		
 		Admin admin = new Admin();
 		admin.setName(adminAndInstitute.superAdmin().name());
 		admin.setEmail(adminAndInstitute.superAdmin().email());

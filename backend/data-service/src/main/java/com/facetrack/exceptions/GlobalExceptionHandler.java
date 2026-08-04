@@ -10,22 +10,6 @@ import com.facetrack.dto.error.ApiError;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
-    @ExceptionHandler(DuplicateResourceException.class)
-    public ResponseEntity<ApiError> handleDuplicateResources(
-    		DuplicateResourceException ex,
-            HttpServletRequest request) {
-
-        ApiError error = new ApiError(
-                LocalDateTime.now(),
-                HttpStatus.CONFLICT.value(),
-                "Dulipcate Entry",
-                ex.getMessage(),
-                request.getRequestURI());
-
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(error);
-    }
     
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiError> handleRuntimException(

@@ -153,34 +153,34 @@ public class StudentService {
 					errors.add("Row " + (i + 2) + " : Roll Number already exists.");
 					continue;
 				}
-//				System.out.println("Log after existsByRollNumber");
+				System.out.println("Log after existsByRollNumber");
 				if (studentDAO.existsByEmail(dto.email())) {
 					failedCount++;
 					errors.add("Row " + (i + 2) + " : Email already exists.");
 					continue;
 				}
 
-//				System.out.println("Log after existsByEmail");
-//				System.out.println("Institute Code from Excel = " + dto.institueCode());
-//				System.out.println("Course Code from Excel = " + dto.courseCode());
+				System.out.println("Log after existsByEmail");
+				System.out.println("Institute Code from Excel = " + dto.institueCode());
+				System.out.println("Course Code from Excel = " + dto.courseCode());
 				Optional<Institute> instituteObj = instituteDAO.findByInstituteCode(Math.toIntExact(dto.institueCode()));
 
 				if (instituteObj.isEmpty()) {
 					failedCount++;
 					errors.add("Row " + (i + 2) + " : Invalid Institute Code.");
-					continue;
+					throw new RuntimeException(dto.institueCode()+" is Not Valid Institute Code");
 				}
 
-//				System.out.println("Log after instituteObj");
+				System.out.println("Log after instituteObj");
 				Optional<Course> courseObj = courseDAO.findById(dto.courseCode());
 
 				if (courseObj.isEmpty()) {
 					failedCount++;
 					errors.add("Row " + (i + 2) + " : Invalid Course Code.");
-					continue;
+					throw new RuntimeException(dto.courseCode()+" is Not Valid Course Code");
 				}
 
-//				System.out.println("Log after instituteObj");
+				System.out.println("Log after instituteObj");
 				
 				Student student = new Student();
 				student.setRollNumber(dto.rollNumber());
@@ -191,7 +191,8 @@ public class StudentService {
 
 				student.setEmail(dto.email());
 
-				student.setPassword(passwordEncoder.encode(dto.rollNumber() + "@123"));
+//				student.setPassword(passwordEncoder.encode(dto.rollNumber() + "@123"));
+				student.setPassword(passwordEncoder.encode("Dummy@123456"));
 
 				student.setInstitute(instituteObj.get());
 
@@ -211,7 +212,7 @@ public class StudentService {
 
 				student.setPasswordUpdated(false);
 
-//				System.out.println("Registering Student email: " + student.getEmail());
+				System.out.println("Registering Student email: " + student.getEmail());
 				Student saved = studentDAO.save(student);
 				System.out.println("Saved Student ID = " + saved.getEmail());
 				successCount++;
