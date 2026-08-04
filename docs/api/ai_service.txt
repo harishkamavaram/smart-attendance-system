@@ -36,6 +36,17 @@
   "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5_BoUc3Bqa9Jhx8ciFPXNhSbuNQ8cfFWl2kYaQQWXwA&s=10"
 }
 ---------------------------------------------------------------------------------------------------------------------------
+{
+  "sessionId": 1,
+  "courseId": 2,
+  "sectionId": "string",
+  "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5_BoUc3Bqa9Jhx8ciFPXNhSbuNQ8cfFWl2kYaQQWXwA&s=10",
+  "isFirstImage": true,
+  "adminId": 1,
+  "totalStudents": 15
+}
+========================================================================================================
 BASE_URL FOR IMAGES UPLOADED
 https://harishkamavaram--smart-attendance-ai-fastapi-app-dev.modal.run/api/v1/fr/images
 https://harishkamavaram--smart-attendance-ai-fastapi-app.modal.run/api/v1/fr/images
+https://harishkamavaram--smart-attendance-image-service-fastapi-app.modal.run/api/v1/images

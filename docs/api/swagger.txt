@@ -1,0 +1,14 @@
+AUTH SERVICE:
+http://localhost:9000/swagger-ui/index.html
+
+ATTENDANCE SERVICE:
+http://localhost:9100/swagger-ui/index.html
+
+DATA SERVICE:
+http://localhost:9200/swagger-ui/index.html
+
+AI SERVICE:
+https://harishkamavaram--smart-attendance-ai-fastapi-app.modal.run/docs
+
+IMAGE SERVICE:
+https://harishkamavaram--smart-attendance-image-service-fastapi-app.modal.run/docs

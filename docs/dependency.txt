@@ -1,0 +1,5 @@
+npm install leaflet react-leaflet
+npm install react-leaflet-cluster
+npm install leaflet-defaulticon-compatibility
+npm install react-leaflet leaflet leaflet-defaulticon-compatibility
+npm install react-leaflet-custom-control
