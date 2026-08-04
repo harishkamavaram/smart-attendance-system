@@ -38,6 +38,7 @@ export default function StudentList() {
         setIsLoading(true);
 
         const instituteId = adminUser?.institute?.id || 1;
+        console.log("Institute Id: ", instituteId)
         const response = await handleFetchStudentsByInstituteId(instituteId);
 
         console.log("Fetched students:", response.data);
@@ -94,6 +95,17 @@ export default function StudentList() {
     page * PAGE_SIZE
   );
 
+  const downloadTemplate = () => {
+    const link = document.createElement("a");
+    link.href = "/template/Student_Import_Template_With_Instructions.xlsx";
+    link.download = "Student_Import_Template_With_Instructions.xlsx";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Please Create Course And Sections First, Before Registering Or Uploading Student Data")
+  };
+  
   return isLoading ? (
     <div className="flex min-h-[400px] flex-col items-center justify-center">
       <div className="rounded-full bg-primary/10 p-5">
@@ -109,187 +121,203 @@ export default function StudentList() {
       </p>
     </div>
   ) : (
-    <div className="space-y-5">
-      <Breadcrumb
-        items={[
-          { label: "Dashboard", href: "/admin/dashboard" },
-          { label: "Students" },
-        ]}
-      />
+    <>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight">
-            Students
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {filtered.length} students across all departments
-          </p>
+      <div className="space-y-5">
+        <Breadcrumb
+          items={[
+            { label: "Dashboard", href: "/admin/dashboard" },
+            { label: "Students" },
+          ]}
+        />
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="font-display text-2xl font-semibold tracking-tight">
+              Students
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {filtered.length} students across all departments
+            </p>
+          </div>
+
+          <div className="flex gap-2">
+            <Link to="/admin/students/bulk-upload">
+              <Button variant="outline">
+                <Upload className="h-4 w-4" /> Bulk upload
+              </Button>
+            </Link>
+
+            <Link to="/admin/students/register">
+              <Button>
+                <Plus className="h-4 w-4" /> Add student
+              </Button>
+            </Link>
+          </div>
         </div>
 
-        <div className="flex gap-2">
-          <Link to="/admin/students/bulk-upload">
-            <Button variant="outline">
-              <Upload className="h-4 w-4" /> Bulk upload
-            </Button>
-          </Link>
+        <Card className="p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <SearchInput
+              value={search}
+              onChange={(v) => {
+                setSearch(v);
+                setPage(1);
+              }}
+              placeholder="Search by name, roll number..."
+              className="sm:flex-1"
+            />
 
-          <Link to="/admin/students/register">
-            <Button>
-              <Plus className="h-4 w-4" /> Add student
-            </Button>
-          </Link>
-        </div>
+            <Select
+              value={section}
+              onChange={(v) => {
+                setSection(v);
+                setPage(1);
+              }}
+              placeholder="All sections"
+              className="sm:w-48"
+              options={[...new Set(students.map((s) => s.section))]
+                .filter(Boolean)
+                .map((sec) => ({
+                  value: sec,
+                  label: sec,
+                }))}
+            />
+
+            {/* <Select
+                value={status}
+                onChange={(v) => {
+                  setStatus(v);
+                  setPage(1);
+                }}
+                placeholder="All statuses"
+                className="sm:w-44"
+                options={[
+                  { value: "registered", label: "Registered" },
+                  { value: "pending", label: "Pending" },
+                ]}
+              /> */}
+          </div>
+        </Card>
+        {filtered.length === 0 ? (
+          <div className="flex justify-center">
+            <button
+              onClick={downloadTemplate}
+              className="rounded-lg border border-blue-700 bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+            >
+              Download Template
+            </button>
+          </div>
+        ) : (
+          <>
+            <Table>
+              <THead>
+                <TR>
+                  <TH>Student</TH>
+                  <TH>Roll No.</TH>
+                  <TH>Batch</TH>
+                  <TH>Section</TH>
+                  <TH>Images</TH>
+                  <TH>Embeddings</TH>
+                  <TH>Action</TH>
+                </TR>
+              </THead>
+
+              <TBody>
+                {pageItems.map((s) => (
+                  <TR key={s.id}>
+                    <TD>
+                      <Link
+                        to={`/admin/students/${s.id}`}
+                        className="flex items-center gap-3"
+                      >
+                        <div className="shrink-0">
+                          <Avatar
+                            name={`${s.firstName} ${s.lastName}`}
+                            size={32}
+                          />
+                        </div>
+
+                        <div>
+                          <p className="font-medium">
+                            {s.firstName} {s.lastName}
+                          </p>
+
+                          <p className="text-xs text-muted-foreground">
+                            Student ID: {s.id}
+                          </p>
+                        </div>
+                      </Link>
+                    </TD>
+                    <TD className="font-mono">{s.rollNumber}</TD>
+
+                    <TD>
+                      <Badge variant="outline">{s.batch}</Badge>
+                    </TD>
+
+                    <TD>{s.section}</TD>
+
+                    <TD>
+                      {s.has_images ? (
+                        <Badge variant="success">Uploaded</Badge>
+                      ) : (
+                        <Badge variant="destructive">Not Uploaded</Badge>
+                      )}
+                    </TD>
+
+                    <TD>
+                      {s.has_embeddings ? (
+                        <Badge variant="success">Registered</Badge>
+                      ) : (
+                        <Badge variant="warning">Pending</Badge>
+                      )}
+                    </TD>
+
+                    <TD>
+                      {s.has_images && !s.has_embeddings ? (
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            navigate(`/admin/students/${s.id}`)
+                          }
+                        >
+                          Register Embedding
+                        </Button>
+                      ) : s.has_images && s.has_embeddings ? (
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            navigate(`/admin/students/${s.id}`)
+                          }
+                        >
+                          View Images
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            navigate(`/admin/students/${s.id}`)
+                          }
+                        >
+                          Upload Images
+                        </Button>
+                      )}
+                    </TD>
+                  </TR>
+                ))}
+              </TBody>
+            </Table>
+
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onChange={setPage}
+            />
+          </>
+        )}
       </div>
 
-      <Card className="p-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <SearchInput
-            value={search}
-            onChange={(v) => {
-              setSearch(v);
-              setPage(1);
-            }}
-            placeholder="Search by name, roll number..."
-            className="sm:flex-1"
-          />
-
-          <Select
-            value={section}
-            onChange={(v) => {
-              setSection(v);
-              setPage(1);
-            }}
-            placeholder="All sections"
-            className="sm:w-48"
-            options={[...new Set(students.map((s) => s.section))]
-              .filter(Boolean)
-              .map((sec) => ({
-                value: sec,
-                label: sec,
-              }))}
-          />
-
-          <Select
-            value={status}
-            onChange={(v) => {
-              setStatus(v);
-              setPage(1);
-            }}
-            placeholder="All statuses"
-            className="sm:w-44"
-            options={[
-              { value: "registered", label: "Registered" },
-              { value: "pending", label: "Pending" },
-            ]}
-          />
-        </div>
-      </Card>
-
-      <Table>
-        <THead>
-          <TR>
-            <TH>Student</TH>
-            <TH>Roll No.</TH>
-            <TH>Batch</TH>
-            <TH>Section</TH>
-            <TH>Images</TH>
-            <TH>Embeddings</TH>
-            <TH>Action</TH>
-          </TR>
-        </THead>
-
-        <TBody>
-          {pageItems.map((s) => (
-            <TR key={s.id}>
-              <TD>
-                <Link
-                  to={`/admin/students/${s.id}`}
-                  className="flex items-center gap-3"
-                >
-                  <div className="shrink-0">
-                    <Avatar
-                      name={`${s.firstName} ${s.lastName}`}
-                      size={32}
-                    />
-                  </div>
-
-                  <div>
-                    <p className="font-medium">
-                      {s.firstName} {s.lastName}
-                    </p>
-
-                    <p className="text-xs text-muted-foreground">
-                      Student ID: {s.id}
-                    </p>
-                  </div>
-                </Link>
-              </TD>
-              <TD className="font-mono">{s.rollNumber}</TD>
-
-              <TD>
-                <Badge variant="outline">{s.batch}</Badge>
-              </TD>
-
-              <TD>{s.section}</TD>
-
-              <TD>
-                {s.has_images ? (
-                  <Badge variant="success">Uploaded</Badge>
-                ) : (
-                  <Badge variant="destructive">Not Uploaded</Badge>
-                )}
-              </TD>
-
-              <TD>
-                {s.has_embeddings ? (
-                  <Badge variant="success">Registered</Badge>
-                ) : (
-                  <Badge variant="warning">Pending</Badge>
-                )}
-              </TD>
-
-              <TD>
-                {s.has_images && !s.has_embeddings ? (
-                  <Button
-                    size="sm"
-                    onClick={() =>
-                      navigate(`/admin/students/${s.id}`)
-                    }
-                  >
-                    Register Embedding
-                  </Button>
-                ) : s.has_images && s.has_embeddings ? (
-                  <Button
-                    size="sm"
-                    onClick={() =>
-                      navigate(`/admin/students/${s.id}`)
-                    }
-                  >
-                    View Images
-                  </Button>
-                ) : (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() =>
-                      navigate(`/admin/students/${s.id}`)
-                    }
-                  >
-                    Upload Images
-                  </Button>
-                )}
-              </TD>
-            </TR>
-          ))}
-        </TBody>
-      </Table>
-
-      <Pagination
-        page={page}
-        totalPages={totalPages}
-        onChange={setPage}
-      />
-    </div>
+    </>
   );
 }

@@ -13,22 +13,44 @@ export const uploadImage = async (file) => {
     });
     // console.log("Image upload response:", res.data);
     // console.log("Image uploaded successfully:", res.data.imageUrl);
-    const imageUrl = res.data.imageUrl === undefined ?  res.data.results[0].imageUrl : res.data.imageUrl;
+    const imageUrl =
+      res.data.imageUrl === undefined
+        ? res.data.results[0].imageUrl
+        : res.data.imageUrl;
     return imageUrl;
   } catch (err) {
     console.error("Error uploading image:", err);
-    toast.error("Failed to upload image");  
+    toast.error("Failed to upload image");
     throw err;
   }
 };
 export const identifyFaces = async (data) => {
-    try{
-  const res = await instance.post("/api/v1/fr/faces", data);
+  try {
+    const res = await instance.post("/api/v1/fr/faces", data);
 
-  return res;
-}catch (err) {
+    return res;
+  } catch (err) {
     console.error("Error identifying faces:", err);
-    toast.error("Failed to identify faces");  
+    toast.error("Failed to identify faces");
     throw err;
+  }
+};
+export const handleIsLocationValid = async (locationId, data) => {
+  try {
+    console.log("locationId in handleIsLocationValid: ", locationId);
+    console.log("Request Body:", data);
+    const response = await instance.post(
+      `/api/v1/data/institute-locations/institute/${locationId}/validate`,
+      data,
+    );
+    console.log("handleIsLocationValid: ", response);
+    return response.data;
+  } catch (error) {
+    const message =
+      error.response?.data?.data?.message ||
+      error.response?.data?.message ||
+      "Login failed";
+    toast.error(message);
+    // throw error;
   }
 };

@@ -8,7 +8,8 @@ import { Progress } from '@/components/ui/Misc'
 import { subjects } from '@/mock/academics'
 import { toast } from 'sonner'
 import { handleFetchAttendanceSessions } from '../../../services/api/attendance/api'
-import { uploadImage, identifyFaces } from '../../../services/api/ai-recognition/api'
+import { uploadImage, identifyFaces, handleIsLocationValid } from '../../../services/api/ai-recognition/api'
+import { getCurrentLocation } from '../../../services/shared_services/geoUtil'
 
 const stages = ['Uploading image', 'Detecting faces', 'Generating embeddings', 'Matching students', 'Logging attendance']
 
@@ -18,6 +19,8 @@ export default function AiRecognition() {
   const [processing, setProcessing] = useState(false)
   const [stageIndex, setStageIndex] = useState(0)
   const [sessions, setSessions] = useState([])
+  const [loadingMessage,setLoadingMessage] = useState("");
+  console.log("sessions: ", sessions)
   const [sessionId, setSessionId] = useState(id || null)
   console.log("Session ID:", sessionId);
   const [imageUrl, setImageUrl] = useState(null)
@@ -33,46 +36,58 @@ export default function AiRecognition() {
     }
     try {
       setProcessing(true);
-
-      const imageUrl = await uploadImage(file);
-      console.log("Uploaded image URL:", imageUrl);
+      setLoadingMessage("Validating Location...")
       // Call face recognition API
-      const courseId = sessions.find((s) => s.id == id).courseId;
-      const sectionId = sessions.find((s) => s.id == id).sectionId.toString();
-      const hasUploadedImage = sessions.find((s) => s.id == id).hasUploadedImage;
-      const totalStudents = sessions.find((s) => s.id == id).totalStudents
+      const courseId = sessions.find((s) => s.id == sessionId).courseId;
+      const sectionId = sessions.find((s) => s.id == sessionId).sectionId.toString();
+      const hasUploadedImage = sessions.find((s) => s.id == sessionId).hasUploadedImage;
+      const totalStudents = sessions.find((s) => s.id == sessionId).totalStudents
       const admin = JSON.parse(localStorage.getItem("admin_user"));
       const adminId = parseInt(admin?.institute.id)
+      // console.log("Institute Id: ", adminId)
       // console.log("Course Id: ",courseId)
       // console.log("Section Id:",sectionId)
       // console.log("Has Image Uploaded: ",!hasUploadedImage)
+      const { latitude, longitude } = await getCurrentLocation();
+      const isValidResponse = await handleIsLocationValid(adminId, { latitude, longitude });
+      const isValid = isValidResponse.data.valid;
+      console.log("IsValid: ", isValid)
 
-      const payload =
-      {
-        "sessionId": parseInt(sessionId),
-        "courseId": courseId,
-        "sectionId": sectionId,
-        "imageUrl": imageUrl,
-        "isFirstImage": !hasUploadedImage,
-        "adminId": adminId,
-        "totalStudents": totalStudents
+      if (isValid) {
+        const imageUrl = await uploadImage(file);
+        console.log("Uploaded image URL:", imageUrl);
+        setLoadingMessage("Uploading Image...")
+        const payload =
+        {
+          "sessionId": parseInt(sessionId),
+          "courseId": courseId,
+          "sectionId": sectionId,
+          "imageUrl": imageUrl,
+          "isFirstImage": !hasUploadedImage,
+          "adminId": adminId,
+          "totalStudents": totalStudents,
+          // latitude,
+          // longitude,
+        }
+        console.log("Payload: ", payload)
+        const response = await identifyFaces(payload);
+        setLoadingMessage("Generating Embedding And Finding Students  ...")
+        setImageUrl(imageUrl);
+        console.log(response);
+        if (response.status == 200) {
+          toast.success("Attendance generated");
+          setRespImageUrl(response.data?.imageUrl);
+          // navigate(`/admin/attendance/sessions/${response.sessionId}`);
+        }
       }
-      console.log("Payload: ", payload)
-      const response = await identifyFaces(payload);
-      setImageUrl(imageUrl);
-      console.log(response);
-      if (response.status == 200) {
-        toast.success("Attendance generated");
-        setRespImageUrl(response.data?.imageUrl);
-        // navigate(`/admin/attendance/sessions/${response.sessionId}`);
-      }
-
     } catch (err) {
       console.error(err);
     } finally {
       setProcessing(false);
     }
   };
+
+
   const fetchSessions = async () => {
     try {
       const response = await handleFetchAttendanceSessions();
@@ -84,7 +99,7 @@ export default function AiRecognition() {
   };
   useEffect(() => {
     fetchSessions()
-  }, [])
+  }, [sessionId])
   return (
     <div className="space-y-5">
       <Breadcrumb items={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'AI Recognition' }]} />
@@ -100,7 +115,8 @@ export default function AiRecognition() {
               <div>
                 <label className="mb-1.5 block text-sm font-medium">Sessions</label>
                 <Select placeholder="Select session" value={sessionId} options={sessions.map((s) => ({ value: s.id, label: s.sessionName }))}
-                  onValueChange={(value) => {
+                  onChange={(value) => {
+                    console.log(value)
                     setSessionId(value);
                   }} />
               </div>
@@ -130,7 +146,7 @@ export default function AiRecognition() {
               ) : (
                 <div className="w-full max-w-sm">
                   <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-                  <p className="mt-3 text-sm font-medium">{stages[Math.min(stageIndex, stages.length - 1)]}…</p>
+                  <p className="mt-3 text-sm font-medium">{loadingMessage}</p>
                   <Progress value={(stageIndex / stages.length) * 100} className="mt-3" />
                 </div>
               )}

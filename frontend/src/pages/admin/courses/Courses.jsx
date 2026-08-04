@@ -9,6 +9,7 @@ import { Breadcrumb } from "@/components/ui/Controls";
 import { toast } from "sonner";
 import { handleFetchCourses } from "../../../services/api/course/api";
 import instance from "../../../services/api/instance";
+import { Select } from "../../../components/ui/Controls";
 
 
 
@@ -16,6 +17,10 @@ export default function Courses() {
 
   const [courses, setCourses] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [courseId, setCourseId] = useState("");
+  const [sectionName, setSectionName] = useState("");
+  const [deleteSection, setDeleteSection] = useState(null);
+  const [sections, setSections] = useState([]);
 
   const [search, setSearch] = useState("");
 
@@ -115,215 +120,417 @@ export default function Courses() {
         </p>
       </div>
     ) : (
-      <div className="space-y-6">
+      <>
+        <div className="space-y-6">
 
-        <Breadcrumb
-          items={[
-            { label: "Dashboard", href: "/admin/dashboard" },
-            { label: "Courses" },
-          ]}
-        />
+          <Breadcrumb
+            items={[
+              { label: "Dashboard", href: "/admin/dashboard" },
+              { label: "Courses" },
+            ]}
+          />
 
-        <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between">
 
-          <div>
+            <div>
 
-            <h1 className="text-2xl font-semibold">
-              Courses
-            </h1>
+              <h1 className="text-2xl font-semibold">
+                Courses
+              </h1>
 
-            <p className="text-sm text-muted-foreground">
-              Manage institute courses.
-            </p>
-
-          </div>
-
-          <Button
-            onClick={() => setOpen(true)}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add Course
-          </Button>
-
-        </div>
-
-        <Card>
-
-          <CardContent className="space-y-4 p-6">
-
-            <div className="relative">
-
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
-                placeholder="Search course..."
-              />
+              <p className="text-sm text-muted-foreground">
+                Manage institute courses.
+              </p>
 
             </div>
 
-            <Table>
+            <Button
+              onClick={() => setOpen(true)}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Course
+            </Button>
 
-              <THead>
+          </div>
 
-                <TR>
-                  <TH>Name</TH>
-                  <TH>Created</TH>
-                  <TH className="text-right">
-                    Actions
-                  </TH>
-                </TR>
+          <Card>
 
-              </THead>
+            <CardContent className="space-y-4 p-6">
 
-              <TBody>
+              <div className="relative">
 
-                {filtered.length === 0 ? (
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-10"
+                  placeholder="Search course..."
+                />
+
+              </div>
+
+              <Table>
+
+                <THead>
 
                   <TR>
-
-                    <TD colSpan={3} className="text-center py-10">
-
-                      No Courses Found
-
-                    </TD>
-
+                    <TH>Name</TH>
+                    <TH>Created</TH>
+                    <TH className="text-right">
+                      Actions
+                    </TH>
                   </TR>
 
-                ) : (
+                </THead>
 
-                  filtered.map(course => (
+                <TBody>
 
-                    <TR key={course.id}>
+                  {filtered.length === 0 ? (
 
-                      <TD>{course.name}</TD>
+                    <TR>
 
-                      <TD>
-                        {new Date(course.createdAt)
-                          .toLocaleDateString()}
-                      </TD>
+                      <TD colSpan={3} className="text-center py-10">
 
-                      <TD className="text-right">
-
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => {
-                            setEditing(course);
-
-                            setCourseName(course.name);
-
-                            setOpen(true);
-                          }}
-                        >
-
-                          <Pencil className="h-4 w-4" />
-
-                        </Button>
-
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => setDeleteCourse(course)}
-                        >
-
-                          <Trash2 className="h-4 w-4 text-red-500" />
-
-                        </Button>
+                        No Courses Found
 
                       </TD>
 
                     </TR>
 
-                  ))
+                  ) : (
 
-                )}
+                    filtered.map(course => (
 
-              </TBody>
+                      <TR key={course.id}>
 
-            </Table>
+                        <TD>{course.name}</TD>
 
-          </CardContent>
+                        <TD>
+                          {new Date(course.createdAt)
+                            .toLocaleDateString()}
+                        </TD>
 
-        </Card>
+                        <TD className="text-right">
 
-        {open && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="w-full max-w-md rounded-xl bg-white dark:bg-slate-900 shadow-xl p-6">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => {
+                              setEditing(course);
 
-              <h2 className="text-xl font-semibold mb-5">
-                {editing ? "Edit Course" : "Add Course"}
-              </h2>
+                              setCourseName(course.name);
 
-              <Input
-                placeholder="Course Name"
-                value={courseName}
-                onChange={(e) => setCourseName(e.target.value)}
-              />
+                              setOpen(true);
+                            }}
+                          >
 
-              <div className="mt-6 flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={closeDialog}
-                >
-                  Cancel
-                </Button>
+                            <Pencil className="h-4 w-4" />
 
-                <Button onClick={saveCourse}>
-                  Save
-                </Button>
+                          </Button>
+
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => setDeleteCourse(course)}
+                          >
+
+                            <Trash2 className="h-4 w-4 text-red-500" />
+
+                          </Button>
+
+                        </TD>
+
+                      </TR>
+
+                    ))
+
+                  )}
+
+                </TBody>
+
+              </Table>
+
+            </CardContent>
+
+          </Card>
+
+          {open && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+              <div className="w-full max-w-md rounded-xl bg-white dark:bg-slate-900 shadow-xl p-6">
+
+                <h2 className="text-xl font-semibold mb-5">
+                  {editing ? "Edit Course" : "Add Course"}
+                </h2>
+
+                <Input
+                  placeholder="Course Name"
+                  value={courseName}
+                  onChange={(e) => setCourseName(e.target.value)}
+                />
+
+                <div className="mt-6 flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={closeDialog}
+                  >
+                    Cancel
+                  </Button>
+
+                  <Button onClick={saveCourse}>
+                    Save
+                  </Button>
+                </div>
+
               </div>
-
             </div>
-          </div>
-        )}
-        {deleteCourse && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="w-full max-w-sm rounded-xl bg-white dark:bg-slate-900 p-6 shadow-2xl">
+          )}
+          {deleteCourse && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+              <div className="w-full max-w-sm rounded-xl bg-white dark:bg-slate-900 p-6 shadow-2xl">
 
-              <div className="flex justify-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
-                  <Trash2 className="h-7 w-7 text-red-600" />
+                <div className="flex justify-center">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
+                    <Trash2 className="h-7 w-7 text-red-600" />
+                  </div>
+                </div>
+
+                <h2 className="mt-4 text-center text-xl font-semibold">
+                  Delete Course
+                </h2>
+
+                <p className="mt-2 text-center text-sm text-muted-foreground">
+                  Are you sure you want to delete
+                  <span className="font-semibold">
+                    {" "}{deleteCourse.name}
+                  </span>
+                  ?
+                  <br />
+                  This action cannot be undone.
+                </p>
+
+                <div className="mt-6 flex justify-end gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setDeleteCourse(null)}
+                  >
+                    Cancel
+                  </Button>
+
+                  <Button
+                    className="bg-red-600 hover:bg-red-700"
+                    onClick={handleDeleteCourse}
+                  >
+                    Delete
+                  </Button>
+                </div>
+
+              </div>
+            </div>
+          )}
+        </div>
+        {/* <div className="space-y-6">
+          <Breadcrumb
+            items={[
+              { label: "Dashboard", href: "/admin/dashboard" },
+              { label: "Sections" },
+            ]}
+          />
+
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold">Sections</h1>
+              <p className="text-sm text-muted-foreground">
+                Manage course sections.
+              </p>
+            </div>
+
+            <Button
+              onClick={() => setOpen(true)}
+              disabled={!courseId}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Section
+            </Button>
+          </div>
+
+          <Card>
+            <CardContent className="space-y-4 p-6">
+ 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-2 block text-sm font-medium">
+                    Course
+                  </label>
+
+                  <Select
+                    value={courseId}
+                    onChange={setCourseId}
+                    options={courses.map(course => ({
+                      value: String(course.id),
+                      label: course.name,
+                    }))}
+                    placeholder="Select Course"
+                  />
+                </div>
+
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+
+                  <Input
+                    className="pl-10"
+                    placeholder="Search Section..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
                 </div>
               </div>
 
-              <h2 className="mt-4 text-center text-xl font-semibold">
-                Delete Course
-              </h2>
+              <Table>
+                <THead>
+                  <TR>
+                    <TH>Section Name</TH>
+                    <TH>Course</TH>
+                    <TH>Created</TH>
+                    <TH className="text-right">Actions</TH>
+                  </TR>
+                </THead>
 
-              <p className="mt-2 text-center text-sm text-muted-foreground">
-                Are you sure you want to delete
-                <span className="font-semibold">
-                  {" "}{deleteCourse.name}
-                </span>
-                ?
-                <br />
-                This action cannot be undone.
-              </p>
+                <TBody>
+                  {filtered.length === 0 ? (
+                    <TR>
+                      <TD colSpan={4} className="py-10 text-center">
+                        No Sections Found
+                      </TD>
+                    </TR>
+                  ) : (
+                    filtered.map(section => (
+                      <TR key={section.id}>
+                        <TD>{section.name}</TD>
+                        <TD>{section.courseName}</TD>
+                        <TD>
+                          {new Date(section.createdAt).toLocaleDateString()}
+                        </TD>
 
-              <div className="mt-6 flex justify-end gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setDeleteCourse(null)}
-                >
-                  Cancel
-                </Button>
+                        <TD className="text-right">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => {
+                              setEditing(section);
+                              setSectionName(section.name);
+                              setCourseId(String(section.courseId));
+                              setOpen(true);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
 
-                <Button
-                  className="bg-red-600 hover:bg-red-700"
-                  onClick={handleDeleteCourse}
-                >
-                  Delete
-                </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => setDeleteSection(section)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </TD>
+                      </TR>
+                    ))
+                  )}
+                </TBody>
+              </Table>
+
+            </CardContent>
+          </Card>
+ 
+          {open && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+              <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-slate-900">
+
+                <h2 className="mb-5 text-xl font-semibold">
+                  {editing ? "Edit Section" : "Add Section"}
+                </h2>
+
+                <div className="space-y-4">
+
+                  <Select
+                    value={courseId}
+                    onChange={setCourseId}
+                    options={courses.map(course => ({
+                      value: String(course.id),
+                      label: course.name,
+                    }))}
+                    placeholder="Select Course"
+                  />
+
+                  <Input
+                    placeholder="Section Name"
+                    value={sectionName}
+                    onChange={(e) => setSectionName(e.target.value)}
+                  />
+
+                </div>
+
+                <div className="mt-6 flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={closeDialog}
+                  >
+                    Cancel
+                  </Button>
+
+                  <Button onClick={saveSection}>
+                    Save
+                  </Button>
+                </div>
+
               </div>
-
             </div>
-          </div>
-        )}
-      </div>
+          )}
+ 
+          {deleteSection && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+              <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl dark:bg-slate-900">
 
+                <div className="flex justify-center">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
+                    <Trash2 className="h-7 w-7 text-red-600" />
+                  </div>
+                </div>
+
+                <h2 className="mt-4 text-center text-xl font-semibold">
+                  Delete Section
+                </h2>
+
+                <p className="mt-2 text-center text-sm text-muted-foreground">
+                  Are you sure you want to delete
+                  <span className="font-semibold">
+                    {" "}{deleteSection.name}
+                  </span>
+                  ?
+                </p>
+
+                <div className="mt-6 flex justify-end gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setDeleteSection(null)}
+                  >
+                    Cancel
+                  </Button>
+
+                  <Button
+                    className="bg-red-600 hover:bg-red-700"
+                    onClick={handleDeleteSection}
+                  >
+                    Delete
+                  </Button>
+                </div>
+
+              </div>
+            </div>
+          )}
+        </div> */}
+      </>
     ));
 
 }

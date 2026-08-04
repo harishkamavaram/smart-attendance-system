@@ -94,7 +94,6 @@ export default function StudentDetail() {
     setLoadedImages(0);
   }, [urls]);
 
-
   if (!student) {
     return <EmptyState title="Student not found" description="This student may have been removed." action={<Link to="/admin/students"><Button>Back to students</Button></Link>} />
   }
