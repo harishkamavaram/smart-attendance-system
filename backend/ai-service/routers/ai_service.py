@@ -137,9 +137,9 @@ async def identify_all_faces(request: FaceRequest,db: Session = Depends(get_db))
             f"{name} ({score:.2f})",
             (x1, max(y1 - 10, 20)),
             cv2.FONT_HERSHEY_SIMPLEX,
-            0.6,
+            1.5,
             color,
-            1,
+            2,
             )
         
         results.append({
@@ -161,6 +161,7 @@ async def identify_all_faces(request: FaceRequest,db: Session = Depends(get_db))
     t = time.perf_counter()
 
     if request.isFirstImage:
+        # INSERT all students for the first image
         insert_query = text("""
             INSERT INTO attendance (
                 session_id,
@@ -195,9 +196,29 @@ async def identify_all_faces(request: FaceRequest,db: Session = Depends(get_db))
                 "marked_by": request.adminId,
             },
         )
+    else:
+        # Reset existing attendance before processing a new image
+        update_query = text("""
+            UPDATE attendance
+            SET
+                status = 'ABSENT',
+                confidence = 0.0,
+                image_name = NULL,
+                marked_at = NOW(),
+                marked_by = :marked_by
+            WHERE session_id = :session_id
+        """)
 
-        db.commit()
+        db.execute(
+            update_query,
+            {
+                "session_id": request.sessionId,
+                "marked_by": request.adminId,
+            },
+        )
 
+    db.commit()
+    
     print("DB:", time.perf_counter() - t)
     
     update_query = text("""
@@ -263,7 +284,7 @@ async def identify_all_faces(request: FaceRequest,db: Session = Depends(get_db))
             "section_id": request.sectionId,
             "session_id": request.sessionId,
             "image_url": request.imageUrl,
-            "uploaded_image_url": request.imageUrl,
+            "uploaded_image_url": f"{IMAGE_URL_BASE}/{filename}",
             "is_first_image": request.isFirstImage,
         }
     )
@@ -323,7 +344,7 @@ def get_students(db: Session = Depends(get_db)):
 
     
 @router.post("/students")
-async def register_students(request: RegisterRequest):
+async def register_students(request: RegisterRequest,db: Session = Depends(get_db)):
 
     results = []
 
@@ -387,7 +408,27 @@ async def register_students(request: RegisterRequest):
             name=student.studentName,
             embedding=average_embedding,
         )
+        
+        update_embedding_query = text("""
+                    UPDATE students
+                    SET
+                        has_embeddings = TRUE,
+                        point_id = :point_id
+                    WHERE
+                        id = :id
+                """)
+        
+        db.execute(
+                update_embedding_query,
+                {
+                    "point_id": point_id,
+                    "id": student.studentId,
+                },
+            )
 
+        db.commit()
+                    
+        
         results.append(
             {
                 "point_id":point_id,

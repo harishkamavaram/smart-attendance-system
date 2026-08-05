@@ -10,7 +10,8 @@ export const handleFetchStudentsByInstituteId = async (id) => {
       error.response?.data?.data?.message ||
       error.response?.data?.message ||
       "Failed to fetch students";
-    toast.error(message);
+    // toast.error(message);
+    console.error(message)
     throw error;
   }
 };

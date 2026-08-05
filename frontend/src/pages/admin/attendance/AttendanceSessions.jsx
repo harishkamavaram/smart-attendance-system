@@ -17,7 +17,7 @@ export default function AttendanceSessions() {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   // Form state
-  const [selectedCourse, setSelectedCourse] = useState(1);
+  const [selectedCourse, setSelectedCourse] = useState(2);
   const [selectedSection, setSelectedSection] = useState(1);
   const [sessionName, setSessionName] = useState("");
   const [date, setDate] = useState("");
@@ -25,8 +25,7 @@ export default function AttendanceSessions() {
   const [endTime, setEndTime] = useState("");
   const [room, setRoom] = useState("");
   const [attendanceSessions, setAttendanceSessions] = useState([]);
-  const [course, setCourse] = useState([
-  ]);
+  const [course, setCourse] = useState([]);
   const [sections, setSections] = useState([]);
 
   const validateForm = () => {

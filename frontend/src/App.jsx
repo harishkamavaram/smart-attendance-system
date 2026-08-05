@@ -26,7 +26,7 @@ import BulkUpload from '@/pages/admin/students/BulkUpload'
 import AttendanceSessions from '@/pages/admin/attendance/AttendanceSessions'
 import AttendanceResult from '@/pages/admin/attendance/AttendanceResult'
 import AiRecognition from '@/pages/admin/attendance/AiRecognition'
-import Reports from '@/pages/admin/reports/Reports'
+// import Reports from '@/pages/admin/reports/Reports'
 import AdminSettings from '@/pages/admin/settings/AdminSettings'
 
 import StudentDashboard from '@/pages/student/StudentDashboard'
@@ -44,6 +44,7 @@ import StudentLoggedInGaurd from './routes/StudentLoggedInGaurd'
 import ChangeDefaultPassword from './pages/student/ChangeDefaultPassword'
 import StudentResetPassword from './pages/student/auth/StudentResetPassword'
 import Courses from './pages/admin/courses/Courses'
+import AttendanceImages from './pages/admin/attendance/AttendanceImages'
 
 export default function App() {
   return (
@@ -89,9 +90,10 @@ export default function App() {
           <Route path="/admin/students/:id" element={<StudentDetail />} />
           <Route path="/admin/attendance/sessions" element={<AttendanceSessions />} />
           <Route path="/admin/attendance/sessions/:id" element={<AttendanceResult />} />
+          <Route path="/admin/attendance/images/:id" element={<AttendanceImages />} />
           <Route path="/admin/recognition" element={<AiRecognition />} />
           <Route path="/admin/recognition/:id" element={<AiRecognition />} />
-          <Route path="/admin/reports" element={<Reports />} />
+          {/* <Route path="/admin/reports" element={<Reports />} /> */}
           <Route path="/admin/courses" element={<Courses />} />
           <Route path="/admin/settings" element={<AdminSettings />} />
         </Route>

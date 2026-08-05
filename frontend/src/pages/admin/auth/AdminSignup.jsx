@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { toast } from "sonner";
 import LocationPicker from "@/components/maps/LocationPicker";
 import { handleRegisterAdmin } from "../../../services/api/auth/admin/auth";
+import { Sparkles } from "lucide-react";
 
 export default function AdminSignup() {
   const navigate = useNavigate();
@@ -193,25 +194,15 @@ export default function AdminSignup() {
     <div className="flex min-h-screen flex-col bg-muted/30">
       {/* ================= Header ================= */}
       <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background px-6">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-4.5 w-4.5"
-            >
-              <path d="M20 12a8 8 0 1 1-8-8" />
-              <path d="M12 8a4 4 0 1 0 4 4" />
-              <circle cx="12" cy="12" r="1" />
-            </svg>
+        <Link to="/" className="flex items-center gap-2 ">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/15">
+            <Sparkles className="h-5 w-5 " />
           </div>
-          <span className="text-base font-semibold tracking-tight">FaceTrack</span>
-        </div>
+
+          <span className="font-display text-xl font-semibold">
+            FaceTrack
+          </span>
+        </Link>
 
         <div className="flex items-center gap-3 text-sm">
           <span className="text-muted-foreground">Already have an account?</span>

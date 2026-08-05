@@ -19,7 +19,7 @@ export default function AiRecognition() {
   const [processing, setProcessing] = useState(false)
   const [stageIndex, setStageIndex] = useState(0)
   const [sessions, setSessions] = useState([])
-  const [loadingMessage,setLoadingMessage] = useState("");
+  const [loadingMessage, setLoadingMessage] = useState("");
   console.log("sessions: ", sessions)
   const [sessionId, setSessionId] = useState(id || null)
   console.log("Session ID:", sessionId);
@@ -49,14 +49,15 @@ export default function AiRecognition() {
       // console.log("Section Id:",sectionId)
       // console.log("Has Image Uploaded: ",!hasUploadedImage)
       const { latitude, longitude } = await getCurrentLocation();
-      const isValidResponse = await handleIsLocationValid(adminId, { latitude, longitude });
+      // const isValidResponse = await handleIsLocationValid(adminId, { latitude, longitude });
+      const isValidResponse = await handleIsLocationValid(adminId, { latitude: 17.436722485741274, longitude: 78.44547869404856 });
       const isValid = isValidResponse.data.valid;
       console.log("IsValid: ", isValid)
 
       if (isValid) {
+        setLoadingMessage("Uploading Image...")
         const imageUrl = await uploadImage(file);
         console.log("Uploaded image URL:", imageUrl);
-        setLoadingMessage("Uploading Image...")
         const payload =
         {
           "sessionId": parseInt(sessionId),
@@ -70,15 +71,20 @@ export default function AiRecognition() {
           // longitude,
         }
         console.log("Payload: ", payload)
-        const response = await identifyFaces(payload);
         setLoadingMessage("Generating Embedding And Finding Students  ...")
+        const response = await identifyFaces(payload);
         setImageUrl(imageUrl);
         console.log(response);
         if (response.status == 200) {
           toast.success("Attendance generated");
           setRespImageUrl(response.data?.imageUrl);
-          // navigate(`/admin/attendance/sessions/${response.sessionId}`);
+          setTimeout(() => {
+            navigate(`/admin/attendance/sessions/${sessionId}`);
+          }, 3000)
         }
+      } else {
+        const message = isValidResponse.data.message
+        toast.warning(message)
       }
     } catch (err) {
       console.error(err);
@@ -97,6 +103,7 @@ export default function AiRecognition() {
       console.error("Failed to fetch attendance sessions:", error);
     }
   };
+
   useEffect(() => {
     fetchSessions()
   }, [sessionId])

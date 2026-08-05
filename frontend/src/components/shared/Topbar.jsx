@@ -27,7 +27,7 @@ export default function Topbar({ onMenuClick, user, notifications = [], onLogout
           {theme === 'dark' ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
         </button>
 
-        <Dropdown
+        {/* <Dropdown
           align="right"
           trigger={
             <button className="relative flex h-9 w-9 items-center justify-center rounded-lg hover:bg-muted transition-colors">
@@ -53,7 +53,7 @@ export default function Topbar({ onMenuClick, user, notifications = [], onLogout
                 ]
               : [{ label: 'No notifications yet' }]
           }
-        />
+        /> */}
 
         <Dropdown
           align="right"

@@ -46,7 +46,7 @@ export default function StudentList() {
         setStudents(response.data || []);
       } catch (error) {
         console.error("Error fetching students:", error);
-        toast.error("Failed to fetch students");
+        // toast.error("Failed to fetch students");
       } finally {
         setIsLoading(false);
       }
@@ -156,7 +156,7 @@ export default function StudentList() {
           </div>
         </div>
 
-        <Card className="p-4">
+        {/* <Card className="p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <SearchInput
               value={search}
@@ -197,8 +197,8 @@ export default function StudentList() {
                   { value: "pending", label: "Pending" },
                 ]}
               /> */}
-          </div>
-        </Card>
+          {/* </div>
+        </Card>  */}
         {filtered.length === 0 ? (
           <div className="flex justify-center">
             <button
@@ -258,7 +258,7 @@ export default function StudentList() {
                     <TD>{s.section}</TD>
 
                     <TD>
-                      {s.has_images ? (
+                      {s.hasImages ? (
                         <Badge variant="success">Uploaded</Badge>
                       ) : (
                         <Badge variant="destructive">Not Uploaded</Badge>
@@ -266,7 +266,7 @@ export default function StudentList() {
                     </TD>
 
                     <TD>
-                      {s.has_embeddings ? (
+                      {s.hasEmbeddings ? (
                         <Badge variant="success">Registered</Badge>
                       ) : (
                         <Badge variant="warning">Pending</Badge>
@@ -274,7 +274,7 @@ export default function StudentList() {
                     </TD>
 
                     <TD>
-                      {s.has_images && !s.has_embeddings ? (
+                      {s.hasImages && !s.hasEmbeddings ? (
                         <Button
                           size="sm"
                           onClick={() =>
@@ -283,7 +283,7 @@ export default function StudentList() {
                         >
                           Register Embedding
                         </Button>
-                      ) : s.has_images && s.has_embeddings ? (
+                      ) : s.hasImages && s.hasEmbeddings ? (
                         <Button
                           size="sm"
                           onClick={() =>

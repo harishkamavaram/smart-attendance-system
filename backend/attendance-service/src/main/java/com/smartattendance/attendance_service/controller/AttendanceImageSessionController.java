@@ -41,14 +41,14 @@ public class AttendanceImageSessionController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable Long id) {
 
-        Optional<AttendanceImageSession> session = repository.findById(id);
+    	List<AttendanceImageSession> sessions = repository.findBySessionId(id);
 
-        if (session.isEmpty()) {
+        if (sessions.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("Attendance Image Session not found.");
         }
 
-        return ResponseEntity.ok(session.get());
+        return ResponseEntity.ok(sessions);
     }
 
     // Update

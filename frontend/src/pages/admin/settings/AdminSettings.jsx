@@ -38,7 +38,7 @@ export default function AdminSettings() {
           <TabsTrigger value="institution">Institution</TabsTrigger>
           {/* <TabsTrigger value="roles">Roles</TabsTrigger> */}
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          {/* <TabsTrigger value="notifications">Notifications</TabsTrigger> */}
           {/* <TabsTrigger value="ai">AI Configuration</TabsTrigger> */}
         </TabsList>
 
@@ -98,7 +98,7 @@ export default function AdminSettings() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="notifications">
+        {/* <TabsContent value="notifications">
           <Card>
             <CardHeader><CardTitle>Notification preferences</CardTitle></CardHeader>
             <CardContent className="space-y-4">
@@ -118,7 +118,7 @@ export default function AdminSettings() {
               ))}
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
 
         {/* <TabsContent value="ai">
           <Card>

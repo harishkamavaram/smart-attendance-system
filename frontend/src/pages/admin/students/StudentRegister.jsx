@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, ScanFace, UserPlus } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Breadcrumb } from '@/components/ui/Controls'
 import { toast } from 'sonner'
 import { handleRegisterSingleStudent } from '../../../services/api/auth/student/auth'
+import { handleFetchCourses } from '../../../services/api/course/api'
 
 export default function StudentRegister() {
   const [loading, setLoading] = useState(false)
@@ -25,14 +26,27 @@ export default function StudentRegister() {
   const [parentMobileNumber, setParentMobileNumber] = useState("");
   const [parentEmail, setParentEmail] = useState("");
   const navigate = useNavigate()
+  const [courseOptions, setCourseOptions] = useState([]);
 
-  // Need to make it dynamic
-  const courseOptions = [
-    { value: 1, label: "Computer Science Engineering" },
-    { value: 2, label: "Electronics & Communication" },
-    { value: 3, label: "Mechanical Engineering" },
-    { value: 4, label: "Civil Engineering" },
-  ];
+  const fetchCourses = async () => {
+    try {
+      const response = await handleFetchCourses();
+      console.log("Fetched courses:", response);
+
+      const options = response.data.map((course) => ({
+        value: course.id,
+        label: course.name,
+      }));
+
+      setCourseOptions(options);
+    } catch (error) {
+      console.error("Failed to fetch courses:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCourses();
+  }, []);
 
   const validateForm = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -372,7 +386,7 @@ export default function StudentRegister() {
           </CardContent>
         </Card>
 
-        <Card className="h-fit">
+        {/* <Card className="h-fit">
           <CardHeader><CardTitle>Face registration</CardTitle></CardHeader>
           <CardContent>
             <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-border p-8 text-center">
@@ -384,7 +398,7 @@ export default function StudentRegister() {
               <Button variant="outline" size="sm" onClick={() => toast.info('Camera capture is connected to hardware later')}>Capture now</Button>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </div>
   )

@@ -8,8 +8,7 @@ export const handleFetchAttendanceSessions = async () => {
   } catch (error) {
     console.error("Error fetching attendance sessions:", error.response);
     const message =
-      error.response?.data?.error ||
-      "Failed to fetch attendance sessions";
+      error.response?.data?.error || "Failed to fetch attendance sessions";
     // toast.error(message);
     throw error;
   }
@@ -17,13 +16,14 @@ export const handleFetchAttendanceSessions = async () => {
 
 export const handlefetchAttendanceResult = async (id) => {
   try {
-    const response = await instance.get(`/api/v1/attendance/session-details/${id}`);
+    const response = await instance.get(
+      `/api/v1/attendance/session-details/${id}`,
+    );
     return response.data;
   } catch (error) {
     console.error("Error fetching attendance sessions:", error.response);
     const message =
-      error.response?.data?.error ||
-      "Failed to fetch attendance sessions";
+      error.response?.data?.error || "Failed to fetch attendance sessions";
     toast.error(message);
     throw error;
   }
@@ -31,13 +31,28 @@ export const handlefetchAttendanceResult = async (id) => {
 
 export const handleFetchStudentsBySessionId = async (id) => {
   try {
-    const response = await instance.get(`/api/v1/attendance/students/session/${id}`);
+    const response = await instance.get(
+      `/api/v1/attendance/students/session/${id}`,
+    );
     return response.data;
   } catch (error) {
     console.error("Error fetching attendance sessions:", error.response);
     const message =
-      error.response?.data?.error ||
-      "Failed to fetch Students sessions";
+      error.response?.data?.error || "Failed to fetch Students sessions";
+    toast.error(message);
+    throw error;
+  }
+};
+
+export const handleDeleteSessionBySessionId = async (id) => {
+  try {
+    const response = await instance.delete(
+      `/api/v1/attendance/session-details/${id}`,
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching attendance sessions:", error.response);
+    const message = error.response?.data?.error || "Failed to Delete Session";
     toast.error(message);
     throw error;
   }
@@ -49,9 +64,7 @@ export const handleFetchSections = async () => {
     return response.data;
   } catch (error) {
     console.error("Error fetching sections:", error.response);
-    const message =
-      error.response?.data?.error ||
-      "Failed to fetch sections";
+    const message = error.response?.data?.error || "Failed to fetch sections";
     toast.error(message);
     throw error;
   }
@@ -72,16 +85,27 @@ export const handleCreateAttendanceSession = async (payload) => {
   }
 };
 
-export const handleMarkAction = async (data) =>{
-   try {
-    const response = await instance.post("/api/v1/attendance/mark",data);
-    console.log("handleMarkAction response: ",response)
+export const handleMarkAction = async (data) => {
+  try {
+    const response = await instance.post("/api/v1/attendance/mark", data);
+    // console.log("handleMarkAction response: ", response);
     return response.data;
   } catch (error) {
     console.error("Error fetching sections:", error.response);
-    const message =
-      error.response?.data?.error ||
-      "Failed to fetch sections";
+    const message = error.response?.data?.error || "Failed to fetch sections";
+    toast.error(message);
+    throw error;
+  }
+};
+
+export const handleFetchAttendanceImages = async(id)=>{
+  try{
+    const response = await instance.get(`/api/v1/attendance/image-sessions/${id}`);
+    // console.log("handleFetchAttendanceImages response: ", response);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching sections:", error.response);
+    const message = error.response?.data?.error || "Failed to fetch sections";
     toast.error(message);
     throw error;
   }

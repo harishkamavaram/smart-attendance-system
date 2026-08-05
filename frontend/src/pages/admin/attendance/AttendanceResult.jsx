@@ -1,4 +1,4 @@
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link, useNavigate, Await } from 'react-router-dom'
 import {
   ArrowLeft,
   Download,
@@ -20,7 +20,7 @@ import { EmptyState } from '@/components/ui/Misc'
 import { attendanceSessionsMock, detectedFacesForSession } from '@/mock/attendance'
 import { toast } from 'sonner'
 import { useEffect, useState } from 'react'
-import { handlefetchAttendanceResult, handleFetchStudentsBySessionId, handleMarkAction } from '../../../services/api/attendance/api'
+import { handleDeleteSessionBySessionId, handlefetchAttendanceResult, handleFetchStudentsBySessionId, handleMarkAction } from '../../../services/api/attendance/api'
 
 export default function AttendanceResult() {
   const { id } = useParams()
@@ -29,32 +29,8 @@ export default function AttendanceResult() {
   const [session, setSession] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [apiResponse, setApiResponse] = useState([])
-  // const apiResponse = {
-  //   facesDetected: 8,
-  //   imageUrl: "https://dummyimage.com/800x500",
-  //   results: [
-  //     {
-  //       studentId: 2,
-  //       studentName: "Jeff Bezos",
-  //       score: 0.6918292,
-  //       bbox: [302, 86, 404, 218]
-  //     },
-  //     {
-  //       studentId: 3,
-  //       studentName: "Mark Zuckerberg",
-  //       score: 0.729031,
-  //       bbox: [55, 53, 143, 174]
-  //     },
-  //     {
-  //       studentId: null,
-  //       studentName: "Unknown",
-  //       score: 0.07282513,
-  //       bbox: [177, 125, 260, 251]
-  //     }
-  //   ]
-  // };
-  // After API call
-  // setResult(response.data);
+  const [isLoading, setIsLoading] = useState(false);
+
   const fetchSession = async () => {
     try {
       const response = await handlefetchAttendanceResult(id);
@@ -74,14 +50,25 @@ export default function AttendanceResult() {
       console.error(error)
     }
   }
-  const handleDelete = (id) => {
+  const handleDelete = async () => {
     console.log("Delete session with ID:", id);
-    setDeleteDialogOpen(false);
-    navigate('/admin/attendance/sessions');
+    try {
+      setIsLoading(true)
+      const response = await handleDeleteSessionBySessionId(id)
+      console.log(response)
+      setDeleteDialogOpen(false);
+      navigate('/admin/attendance/sessions');
+    } catch (err) {
+      console.error(err);
+
+    } finally {
+      setIsLoading(false)
+    }
+
   }
   const handleAction = async (studentData) => {
     try {
-      console.log(studentData)
+      console.log("Mark Action Data: ", studentData)
       const response = await handleMarkAction(studentData);
       console.log("Handle Action Assign response:", response);
       fetchStudents(id)
@@ -100,7 +87,13 @@ export default function AttendanceResult() {
   if (!session) {
     return <EmptyState title="Session not found" action={<Link to="/admin/attendance/sessions"><Button>Back to sessions</Button></Link>} />
   }
-
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
+      </div>
+    );
+  }
   const faces = detectedFacesForSession(id)
   const recognized = faces.filter((f) => f.status === 'recognized')
   const unknown = faces.filter((f) => f.status === 'unknown')
@@ -120,6 +113,9 @@ export default function AttendanceResult() {
           <span className="text-sm text-muted-foreground">{session.startTime} - {session.endTime},</span> <span className="text-sm ">{session.status}</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" onClick={() => exportReport('PDF')}>
+            <Download className="h-4 w-4" /> PDF
+          </Button>
           <Button
             variant="outline"
             onClick={() => navigate('/admin/recognition/' + session.id)}
@@ -145,13 +141,13 @@ export default function AttendanceResult() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         {[
           { label: 'Enrolled', value: session.totalStudents, accent: 'text-foreground' },
           { label: 'Present', value: session.present, accent: 'text-success' },
           { label: 'Absent', value: session.absent, accent: 'text-destructive' },
           // { label: 'Late', value: session.late, accent: 'text-warning' },
-          { label: 'AI accuracy', value: `${session.accuracy}%`, accent: 'text-primary' },
+          // { label: 'AI accuracy', value: `${session.accuracy}%`, accent: 'text-primary' },
         ].map((s) => (
           <Card key={s.label} className="p-4 text-center">
             <p className={`text-2xl font-display font-semibold ${s.accent}`}>{s.value}</p>
@@ -221,32 +217,41 @@ export default function AttendanceResult() {
           </CardContent>
         </Card>
       </div> */}
-      {apiResponse.length != 0 && (
+      {apiResponse.length != 0 ? (
         <Card>
           <CardContent className="p-5">
             <Tabs defaultValue="all">
-              <TabsList>
-                <TabsTrigger value="all">
-                  All ({apiResponse.length})
-                </TabsTrigger>
+              <div className="flex justify-between items-center">
+                <TabsList>
+                  <TabsTrigger value="all">
+                    All ({apiResponse.length})
+                  </TabsTrigger>
 
-                <TabsTrigger value="unknown">
-                  Unknown (
-                  {
-                    apiResponse.filter(r => r.status === "ABSENT").length
+                  <TabsTrigger value="unknown">
+                    Unknown (
+                    {
+                      apiResponse.filter(r => r.status === "ABSENT").length
+                    }
+                    )
+                  </TabsTrigger>
+
+                  <TabsTrigger value="recognized">
+                    Recognized (
+                    {
+                      apiResponse.filter(r => r.status !== "ABSENT").length
+                    }
+                    )
+                  </TabsTrigger>
+                </TabsList>
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    navigate(`/admin/attendance/images/${id}`)
                   }
-                  )
-                </TabsTrigger>
-
-                <TabsTrigger value="recognized">
-                  Recognized (
-                  {
-                    apiResponse.filter(r => r.status !== "ABSENT").length
-                  }
-                  )
-                </TabsTrigger>
-              </TabsList>
-
+                >
+                  View Uploaded Images
+                </Button>
+              </div>
               {["all", "recognized", "unknown"].map((tab) => (
                 <TabsContent key={tab} value={tab}>
                   <Table>
@@ -334,6 +339,19 @@ export default function AttendanceResult() {
             </Tabs>
           </CardContent>
         </Card>
+      ) : (
+        <div className="flex flex-col items-center justify-center gap-3 py-8">
+          <p className="text-sm text-muted-foreground">
+            No image uploaded.
+          </p>
+
+          <Button
+            variant="outline"
+            onClick={() => navigate(`/admin/recognition/${session.id}`)}
+          >
+            {session.hasUploadedImage ? "Re-upload Image" : "Add Image"}
+          </Button>
+        </div>
       )}
       {deleteDialogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">

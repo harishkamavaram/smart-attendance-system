@@ -9,7 +9,7 @@ const navItems = [
   { to: '/admin/students', label: 'Students', icon: Users },
   { to: '/admin/attendance/sessions', label: 'Attendance', icon: ScanFace },
   { to: '/admin/recognition', label: 'AI Recognition', icon: ScanEye },
-  { to: '/admin/reports', label: 'Reports', icon: FileBarChart },
+  // { to: '/admin/reports', label: 'Reports', icon: FileBarChart },
   { to: '/admin/courses', label: 'Courses', icon: GraduationCap },
   { to: '/admin/settings', label: 'Settings', icon: Settings },
 ]

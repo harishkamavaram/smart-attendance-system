@@ -10,7 +10,8 @@ export const handleFetchStudentsByInstituteId = async (id) => {
       error.response?.data?.data?.message ||
       error.response?.data?.message ||
       "Login failed";
-    toast.error(message);
+      console.error(message)
+    // toast.error(message);
     throw error;
   }
 };
@@ -49,12 +50,49 @@ export const handleUploadStudentImages = async (formData) => {
         "Content-Type": "multipart/form-data",
       },
     });
+    console.log("Repsone in HandleUploadStudetnImage: ",response)
     return response.data;
   } catch (error) {
     const message =
       error.response?.data?.data?.message ||
       error.response?.data?.message ||
       "Login failed";
+    toast.error(message);
+    throw error;
+  }
+};
+
+export const handleRegisterStudentEmbeddings = async (payload) => {
+  try {
+    const response = await instance.post(
+      "/api/v1/fr/students",
+      payload
+    );
+
+    console.log("Response:", response);
+    return response.data;
+  } catch (error) {
+    const message =
+      error.response?.data?.data?.message ||
+      error.response?.data?.message ||
+      "Request failed";
+
+    toast.error(message);
+    throw error;
+  }
+};
+
+export const handleDeleteEmbeddings = async (pointId) => {
+  try {
+    const response = await instance.delete(`/api/v1/fr/students/${pointId}`);
+    console.log("handleDeleteEmbeddings Response :", response);
+    return response.data;
+  } catch (error) {
+    const message =
+      error.response?.data?.data?.message ||
+      error.response?.data?.message ||
+      "Request failed";
+
     toast.error(message);
     throw error;
   }

@@ -11,7 +11,7 @@ import { getStudentById } from '@/mock/students'
 import { subjects } from '@/mock/academics'
 import { generateStudentCalendar } from '@/mock/attendance'
 import { EmptyState } from '@/components/ui/Misc'
-import { handleFetchStudentImagesById, handleFetchStudentsById, handleUploadStudentImages } from '../../../services/api/studentList/api'
+import { handleDeleteEmbeddings, handleFetchStudentImagesById, handleFetchStudentsById, handleRegisterStudentEmbeddings, handleUploadStudentImages } from '../../../services/api/studentList/api'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -20,19 +20,64 @@ export default function StudentDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [urls, setUrls] = useState([]);
   const [loadedImages, setLoadedImages] = useState(0);
+  const [isImageLoading, setIsImageLoading] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const fileInputRef = useRef(null);
 
 
   // console.log("Student ID from URL:", id);
   const [student, setStudent] = useState(null);
-  // console.log("Student data:", student);
+  console.log("Student data:", student);
 
   const registerEmbeddings = async () => {
     if (!student.hasImages) {
       toast.error("Please upload images first");
       return;
     }
+    console.log("Embedding Registration Button Clicked!")
+    try {
+      setIsImageLoading(true)
+      const payload = {
+        students: [
+          {
+            studentId: student.id,
+            studentName: `${student.firstName} ${student.lastName}`,
+            imageUrls: urls.map((item) =>
+              typeof item === "string" ? item : item.imageUrl
+            ),
+          },
+        ],
+      };
+      console.log("Payload: ", payload)
+      const response = await handleRegisterStudentEmbeddings(payload);
+      console.log("Registration of embeddings: ", response)
+      setStudent((prev) => ({
+        ...prev,
+        pointId: response.results[0].point_id,
+        hasEmbeddings: true,
+      }));
+      if (response) {
+        toast.success(response.message || "Registration Succussful")
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setIsImageLoading(false)
+    }
   }
+  // const deleteEmbeddings = async () => {
+  //   try {
+  //     setIsDeleting(true)
+  //     const res = await handleDeleteEmbeddings(student.pointId)
+  //     console.log("Delete Embeddings: ", res)
+  //   } catch (err) {
+  //     console.error(err)
+  //   }
+  //   finally {
+  //     setIsDeleting(false)
+
+  //   }
+  // }
 
   const handleImageSelect = async (e) => {
     const files = Array.from(e.target.files);
@@ -50,12 +95,22 @@ export default function StudentDetail() {
     });
 
     try {
+      setIsImageLoading(true)
       const response = await handleUploadStudentImages(formData);
       console.log(response);
+      if(response.student_id){
+      setStudent((prev) => ({
+        ...prev,
+        hasImages: true,
+      }));
+      setUrls((prev) => [...prev, ...response.image_urls]);
       toast.success("Images uploaded successfully");
+    }
     } catch (err) {
       console.error(err);
       toast.error("Failed to upload images");
+    } finally {
+      setIsImageLoading(false)
     }
 
     // Allow selecting the same file again
@@ -76,12 +131,12 @@ export default function StudentDetail() {
         if (response.data?.hasImages) {
           console.log("Student has images");
           const imagesResponse = await handleFetchStudentImagesById(id);
-          // console.log("Fetched student images:", imagesResponse.data);
+          console.log("Fetched student images:", imagesResponse.data);
           setUrls(imagesResponse.data || []);
         }
       } catch (error) {
         console.error("Error fetching student:", error);
-        toast.error("Failed to fetch student");
+        // toast.error("Failed to fetch student");
       } finally {
         setIsLoading(false);
       }
@@ -92,6 +147,7 @@ export default function StudentDetail() {
 
   useEffect(() => {
     setLoadedImages(0);
+    console.log("URLs changed", urls);
   }, [urls]);
 
   if (!student) {
@@ -99,7 +155,7 @@ export default function StudentDetail() {
   }
 
   const calendar = generateStudentCalendar(student.firstName.length)
-  const subjectAttendance = subjects.slice(0, 4).map((s, i) => ({ ...s, percent: 65 + ((i * 13 + student.firstName.length) % 33) }))
+  // const subjectAttendance = subjects.slice(0, 4).map((s, i) => ({ ...s, percent: 65 + ((i * 13 + student.firstName.length) % 33) }))
 
   return isLoading ? (
     <div className="flex min-h-[400px] flex-col items-center justify-center">
@@ -121,7 +177,7 @@ export default function StudentDetail() {
         items={[
           { label: "Dashboard", href: "/admin/dashboard" },
           { label: "Students", href: "/admin/students" },
-          { label: `${student.first_name} ${student.last_name}` },
+          { label: `${student.firstName} ${student.lastName}` },
         ]}
       />
 
@@ -314,30 +370,62 @@ export default function StudentDetail() {
                         {urls.map((url, i) => (
                           <img
                             key={i}
+                            src={typeof url === "string" ? url : url.imageUrl}
+                            alt=""
+                            className="aspect-square rounded-lg border object-cover"
+                          />
+                        ))}
+                        {/* {urls.map((url, i) => (
+                          <img
+                            key={i}
                             src={url.imageUrl}
                             alt=""
                             className="aspect-square rounded-lg border object-cover"
                           // onLoad={() => setLoadedImages((prev) => prev + 1)}
                           // onError={() => setLoadedImages((prev) => prev + 1)}
                           />
-                        ))}
+                        ))} */}
                       </div>
 
                       <div className="mt-5">
-                        <Button>Upload More Images</Button>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleImageSelect}
+                        />
+                        <Button
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isImageLoading}
+                        >
+                          {isImageLoading ? " Uploading....." : "Upload More Images"}
+                        </Button>
                       </div>
                     </>
                   ) : (
                     <div className="py-10 text-center">
-
                       <p className="text-muted-foreground">
                         No images uploaded yet.
                       </p>
 
-                      <Button className="mt-4" onClick={() => fileInputRef.current?.click()}>
-                        Upload Images
-                      </Button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageSelect}
+                      />
 
+                      <Button
+                        className="mt-4"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isImageLoading}
+                      >
+                        {isImageLoading ? " Uploading....." : "Upload Images"}
+                      </Button>
                     </div>
                   )}
 
@@ -388,8 +476,10 @@ export default function StudentDetail() {
 
                     {student.hasImages &&
                       !student.hasEmbeddings && (
-                        <Button onclick={registerEmbeddings}>
-                          Register Embeddings
+                        <Button 
+                        onClick={registerEmbeddings} 
+                        disabled={isImageLoading}>
+                          {isImageLoading ? "Registering" : "Register Embeddings"}
                         </Button>
                       )}
 
@@ -397,13 +487,15 @@ export default function StudentDetail() {
                       student.hasEmbeddings && (
                         <div className="flex gap-3">
 
-                          <Button>
-                            Regenerate Embeddings
+                          <Button
+                            onClick={registerEmbeddings}
+                            disabled={isImageLoading}>
+                            {isImageLoading ? "Regenerating" : "Regenerate Embeddings"}
                           </Button>
 
-                          <Button variant="outline">
-                            Delete Embeddings
-                          </Button>
+                          {/* <Button variant="outline" onClick={deleteEmbeddings}>
+                            {isDeleting ? "Deleting..." : "Delete Embeddings"}
+                          </Button> */}
 
                         </div>
                       )}

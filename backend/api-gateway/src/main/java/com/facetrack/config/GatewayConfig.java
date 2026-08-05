@@ -50,8 +50,8 @@ public class GatewayConfig {
 //                                        "harishkamavaram--smart-attendance-image-service-fastapi-app.modal.run")
                         // .filter(authFilter.apply(new AuthenticationFilter.Config()))
                         )
-                        .uri("https://harishkamavaram--smart-attendance-image-service-fastapi-app.modal.run"
-                                + ""))
+//                        .uri("https://www.google.com"))
+                        .uri("https://harishkamavaram--smart-attendance-image-service-fastapi-app.modal.run"))
 
                 .build();
 
