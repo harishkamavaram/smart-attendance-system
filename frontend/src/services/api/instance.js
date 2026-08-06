@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL:"http://facetrackai.duckdns.org",
+  baseURL:"https://facetrackai.duckdns.org",
   // baseURL: "http://localhost:8080",
   // baseURL: "https://strictly-for-wagon-repairs.trycloudflare.com",
   // baseURL: 'http://ec2-16-16-76-165.eu-north-1.compute.amazonaws.com',
