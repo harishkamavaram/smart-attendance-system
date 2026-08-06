@@ -3,9 +3,9 @@ import {
     CardContent,
     CardHeader,
     CardTitle
-} from "@/components/ui/card";
+} from "@/components/ui/Card";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Breadcrumb } from "../../../components/ui/Controls";
