@@ -19,8 +19,8 @@ import { handleStudentLogoutApi } from '../services/api/auth/student/auth'
 
 const navItems = [
   { to: '/student/dashboard', label: 'Home', icon: LayoutDashboard },
-  { to: '/student/attendance', label: 'History', icon: CalendarDays },
-  { to: '/student/notifications', label: 'Alerts', icon: Bell },
+  // { to: '/student/attendance', label: 'History', icon: CalendarDays },
+  // { to: '/student/notifications', label: 'Alerts', icon: Bell },
   { to: '/student/profile', label: 'Profile', icon: User },
 ]
 
@@ -120,10 +120,10 @@ export default function StudentLayout() {
             <button onClick={toggleTheme} className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-muted">
               {theme === 'dark' ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
             </button>
-            <NavLink to="/student/notifications" className="relative flex h-9 w-9 items-center justify-center rounded-lg hover:bg-muted">
+            {/* <NavLink to="/student/notifications" className="relative flex h-9 w-9 items-center justify-center rounded-lg hover:bg-muted">
               <Bell className="h-4.5 w-4.5" />
               {unread > 0 && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive" />}
-            </NavLink>
+            </NavLink> */}
             <div className="relative">
               <button
                 onClick={() => setOpenMenu(!openMenu)}

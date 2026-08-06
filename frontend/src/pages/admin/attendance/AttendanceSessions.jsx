@@ -27,6 +27,7 @@ export default function AttendanceSessions() {
   const [attendanceSessions, setAttendanceSessions] = useState([]);
   const [course, setCourse] = useState([]);
   const [sections, setSections] = useState([]);
+  const [isLoading, setIsLoading] = useState(true)
 
   const validateForm = () => {
     // Course
@@ -171,29 +172,39 @@ export default function AttendanceSessions() {
   };
   const fetchSessions = async () => {
     try {
+      setIsLoading(true)
       const response = await handleFetchAttendanceSessions();
       console.log("Fetched attendance sessions:", response);
       setAttendanceSessions(response);
     } catch (error) {
       console.error("Failed to fetch attendance sessions:", error);
     }
+    finally {
+      setIsLoading(false)
+    }
   };
   const fetchCourses = async () => {
     try {
+      setIsLoading(true)
       const response = await handleFetchCourses();
       // console.log("Fetched courses:", response);
       setCourse(response.data);
     } catch (error) {
       console.error("Failed to fetch courses:", error);
+    } finally {
+      setIsLoading(false)
     }
   }
   const fetchSections = async () => {
     try {
+      setIsLoading(true)
       const response = await handleFetchSections();
       console.log("Fetched sections:", response);
       setSections(response);
     } catch (error) {
       console.error("Failed to fetch sections:", error);
+    } finally {
+      setIsLoading(false)
     }
   }
   useEffect(() => {
@@ -201,6 +212,14 @@ export default function AttendanceSessions() {
     fetchCourses();
     fetchSections();
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">

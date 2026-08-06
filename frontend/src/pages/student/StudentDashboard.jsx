@@ -2,18 +2,53 @@ import { Link } from 'react-router-dom'
 import { CalendarDays, Clock, BookOpen, TrendingUp, ArrowRight } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Progress, Avatar } from '@/components/ui/Misc'
-import { Badge, StatusChip } from '@/components/ui/Badge'
+import { Badge } from '@/components/ui/Badge'
 import { AttendanceAreaChart } from '@/components/charts/ChartWrappers'
 import { useAuth } from '@/hooks/useAuth'
 import { monthlyAttendanceTrend } from '@/mock/attendance'
 import { subjects, timetable } from '@/mock/academics'
 import { studentNotifications } from '@/mock/misc'
+import { useEffect, useState } from 'react'
+import { handleFetchStudentDashboardInfo } from '../../services/api/dashboard/student/api'
+import { StatusChip } from '../../components/ui/StatusChip'
 
 const todayName = new Date().toLocaleDateString('en-US', { weekday: 'long' })
 const todaySchedule = timetable.find((d) => d.day === todayName) || timetable[0]
 
 export default function StudentDashboard() {
   const { studentUser } = useAuth()
+  const [isLoading, setIsLoading] = useState(true)
+  const [info, setInfo] = useState([])
+  console.log(info)
+
+  const fectchInfo = async () => {
+    try {
+      setIsLoading(true)
+      const id = parseInt(studentUser.id)
+      console.log("Id: ", id)
+      const response = await handleFetchStudentDashboardInfo(id);
+      // console.log("Response: ",response)
+      setInfo(response.data)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+  useEffect(() => {
+    if (studentUser.id) {
+      fectchInfo()
+    }
+  }, [studentUser.id])
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
+      </div>
+    );
+  }
+
 
   return (
     <div className="space-y-5">
@@ -25,23 +60,28 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-2">
         <Card className="p-4">
           <p className="text-xs text-muted-foreground">Today</p>
-          <p className="mt-1"><StatusChip status="present" label="Present" /></p>
+          <p className="mt-1">
+            <StatusChip
+              status={info.todayStatus}
+              label={info.todayStatus}
+            />
+          </p>
         </Card>
-        <Card className="p-4">
+        {/* <Card className="p-4">
           <p className="text-xs text-muted-foreground">Monthly %</p>
           <p className="mt-1 text-xl font-display font-semibold">87%</p>
-        </Card>
+        </Card> */}
         <Card className="p-4">
           <p className="text-xs text-muted-foreground">Classes today</p>
-          <p className="mt-1 text-xl font-display font-semibold">{todaySchedule.slots.length}</p>
+          <p className="mt-1 text-xl font-display font-semibold">{info.totalSessionsCount}</p>
         </Card>
-        <Card className="p-4">
+        {/* <Card className="p-4">
           <p className="text-xs text-muted-foreground">Profile</p>
           <p className="mt-1 text-xl font-display font-semibold">92%</p>
-        </Card>
+        </Card> */}
       </div>
 
       {/* <Card className="p-5">
@@ -53,7 +93,7 @@ export default function StudentDashboard() {
         <p className="mt-2 text-xs text-muted-foreground">Add your guardian's phone number to reach 100%.</p>
       </Card> */}
 
-      <Card>
+      {/* <Card>
         <CardHeader className="flex-row items-center justify-between">
           <CardTitle>Attendance trend</CardTitle>
           <Link to="/student/attendance" className="flex items-center gap-1 text-xs font-medium text-primary hover:underline">
@@ -61,27 +101,27 @@ export default function StudentDashboard() {
           </Link>
         </CardHeader>
         <CardContent><AttendanceAreaChart data={monthlyAttendanceTrend} /></CardContent>
-      </Card>
+      </Card> */}
 
       <Card>
         <CardHeader><CardTitle>Today's classes</CardTitle></CardHeader>
         <CardContent className="space-y-3">
-          {todaySchedule.slots.map((s, i) => (
+          {info.todaySessions.map((s, i) => (
             <div key={i} className="flex items-center gap-3 rounded-xl border border-border p-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
                 <Clock className="h-4.5 w-4.5" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{s.subject}</p>
-                <p className="text-xs text-muted-foreground">{s.time} · {s.room}</p>
+                <p className="truncate text-sm font-medium">{s.sessionName}</p>
+                <p className="text-xs text-muted-foreground">Time: {s.startTime} · Room: {s.room}</p>
               </div>
-              <Badge variant="outline">{s.teacher.split(' ').slice(-1)}</Badge>
+              <Badge variant="outline">{s.courseName.split(' ').slice(-1)}</Badge>
             </div>
           ))}
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      {/* <div className="grid gap-4 sm:grid-cols-2">
         <Card>
           <CardHeader><CardTitle>Subjects</CardTitle></CardHeader>
           <CardContent className="space-y-3">
@@ -114,7 +154,7 @@ export default function StudentDashboard() {
             ))}
           </CardContent>
         </Card>
-      </div>
+      </div> */}
     </div>
   )
 }

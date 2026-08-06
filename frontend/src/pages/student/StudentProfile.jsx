@@ -39,7 +39,7 @@ export default function StudentProfile() {
         </div>
       </Card>
 
-      <FaceRegistrationCard />
+      <FaceRegistrationCard id={studentUser} />
 
       {/* <Card>
         <CardHeader><CardTitle>Profile completion</CardTitle></CardHeader>

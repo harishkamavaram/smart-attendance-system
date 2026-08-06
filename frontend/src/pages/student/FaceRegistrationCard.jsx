@@ -1,26 +1,37 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Upload,
   Camera,
   ImagePlus,
   Trash2,
 } from "lucide-react";
-
+import { Badge, StatusChip } from '@/components/ui/Badge'
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
 } from "@/components/ui/Card";
-
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
 import { Button } from "@/components/ui/Button";
 import { handleUploadPhotos } from "../../services/api/dashboard/student/api";
+import { handleFetchStudentImagesById, handleFetchStudentsById, handleRegisterStudentEmbeddings, handleUploadStudentImages } from "../../services/api/studentList/api";
+import { toast } from "sonner";
 
-export default function FaceRegistrationCard() {
+export default function FaceRegistrationCard(data) {
+  const [student, setStudent] = useState([])
+  // console.log("data: ",data)
+  // console.log("student: ", student)
+
+
   const [images, setImages] = useState([]);
+  const [urls, setUrls] = useState([]);
+  const [isImageLoading, setIsImageLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   const cameraInputRef = useRef(null);
   const galleryInputRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const handleFiles = (files) => {
     if (!files || files.length === 0) return;
@@ -46,139 +57,309 @@ export default function FaceRegistrationCard() {
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleUpload = async () => {
-    console.log(images);
+  const registerEmbeddings = async () => {
+    if (!student.hasImages) {
+      toast.error("Please upload images first");
+      return;
+    }
+    console.log("Embedding Registration Button Clicked!")
+    try {
+      setIsImageLoading(true)
+      const payload = {
+        students: [
+          {
+            studentId: student.id,
+            studentName: `${student.firstName} ${student.lastName}`,
+            imageUrls: urls.map((item) =>
+              typeof item === "string" ? item : item.imageUrl
+            ),
+          },
+        ],
+      };
+      console.log("Payload: ", payload)
+      const response = await handleRegisterStudentEmbeddings(payload);
+      console.log("Registration of embeddings: ", response)
+      setStudent((prev) => ({
+        ...prev,
+        pointId: response.results[0].point_id,
+        hasEmbeddings: true,
+      }));
+      if (response) {
+        toast.success(response.message || "Registration Succussful")
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setIsImageLoading(false)
+    }
+  }
+
+  const handleImageSelect = async (e) => {
+    const files = Array.from(e.target.files);
+    console.log("Selected files:", files);
+
+    if (files.length === 0) return;
+    console.log("Uploading images for student ID:", student.id, "Files:", files);
+
     const formData = new FormData();
 
-    images.forEach((image) => {
-      formData.append("files", image.file);
+    formData.append("student_id", student.id);
+
+    files.forEach((file) => {
+      formData.append("files", file);
     });
-    const response = await handleUploadPhotos(formData);
-    console.log("response in ui: ",response)
+
+    try {
+      setIsImageLoading(true)
+      const response = await handleUploadStudentImages(formData);
+      console.log(response);
+      if (response.student_id) {
+        setStudent((prev) => ({
+          ...prev,
+          hasImages: true,
+        }));
+        setUrls((prev) => [...prev, ...response.image_urls]);
+        toast.success("Images uploaded successfully");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to upload images");
+    } finally {
+      setIsImageLoading(false)
+    }
+
+    // Allow selecting the same file again
+    e.target.value = "";
   };
+  useEffect(() => {
+    if (!data.id.id) return;
 
+    const fetchStudent = async () => {
+      try {
+        setIsLoading(true);
+
+        const response = await handleFetchStudentsById(data.id.id);
+        // console.log("Fetched student:", response.data);
+        setStudent(response.data || null);
+
+        if (response.data?.hasImages) {
+          console.log("Student has images");
+          const imagesResponse = await handleFetchStudentImagesById(data.id.id);
+          console.log("Fetched student images:", imagesResponse.data);
+          setUrls(imagesResponse.data || []);
+        }
+      } catch (error) {
+        console.error("Error fetching student:", error);
+        // toast.error("Failed to fetch student");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStudent();
+  }, [data.id.id]);
+
+
+
+  // const handleUpload = async () => {
+  //   console.log(images);
+  //   const formData = new FormData();
+  //   formData.append("student_id", id);
+  //   images.forEach((image) => {
+  //     formData.append("files", image.file);
+  //   });
+  //   const response = await handleUploadPhotos(formData);
+  //   console.log("response in ui: ", response)
+  // };
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
+      </div>
+    );
+  }
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Face Registration</CardTitle>
-      </CardHeader>
+    <>
+      {/* Tabs */}
+      < Card >
+        <CardHeader>
+          <CardTitle>
+            Face Registration
+          </CardTitle>
+        </CardHeader>
 
-      <CardContent className="space-y-6">
-        {/* Hidden Inputs */}
+        <CardContent>
 
-        {/* Camera */}
-        <input
-          ref={cameraInputRef}
-          type="file"
-          accept="image/*"
-          capture="user"
-          className="hidden"
-          onChange={(e) => handleFiles(e.target.files)}
-        />
+          <Tabs defaultValue="images">
 
-        {/* Gallery */}
-        <input
-          ref={galleryInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          className="hidden"
-          onChange={(e) => handleFiles(e.target.files)}
-        />
+            <TabsList>
+              <TabsTrigger value="images">
+                Images
+              </TabsTrigger>
 
-        {/* Drag & Drop Area */}
+              <TabsTrigger value="embedding">
+                Embeddings
+              </TabsTrigger>
+            </TabsList>
 
-        <div
-          onDrop={onDrop}
-          onDragOver={onDragOver}
-          onClick={() => galleryInputRef.current.click()}
-          className="cursor-pointer rounded-xl border-2 border-dashed border-primary/40 p-8 transition hover:border-primary hover:bg-primary/5"
-        >
-          <div className="flex flex-col items-center gap-3 text-center">
-            <Upload className="h-10 w-10 text-primary" />
+            {/* Images */}
+            <TabsContent value="images">
 
-            <div>
-              <p className="font-semibold text-base">
-                Drag & Drop Images
-              </p>
+              {student.hasImages && urls.length > 0 ? (
+                <>
+                  {/* {loadedImages < urls.length && (
+                        <div className="flex items-center justify-center py-10">
+                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        </div>
+                      )} */}
 
-              <p className="text-sm text-muted-foreground">
-                or click to choose from your device
-              </p>
-            </div>
-          </div>
-        </div>
+                  <div
+                    className={`grid grid-cols-2 gap-4 md:grid-cols-3 
+                         
+                          }`}
+                  >
+                    {/*  ${loadedImages < urls.length ? "hidden" : "" */}
+                    {urls.map((url, i) => (
+                      <img
+                        key={i}
+                        src={typeof url === "string" ? url : url.imageUrl}
+                        alt={`${student.firstName} ${student.lastName}`}
+                        className="aspect-square rounded-lg border object-cover"
+                      />
+                    ))}
+                    {/* {urls.map((url, i) => (
+                          <img
+                            key={i}
+                            src={url.imageUrl}
+                            alt=""
+                            className="aspect-square rounded-lg border object-cover"
+                          // onLoad={() => setLoadedImages((prev) => prev + 1)}
+                          // onError={() => setLoadedImages((prev) => prev + 1)}
+                          />
+                        ))} */}
+                  </div>
 
-        {/* Buttons */}
+                  <div className="mt-5">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageSelect}
+                    />
+                    <Button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isImageLoading}
+                    >
+                      {isImageLoading ? " Uploading....." : "Upload More Images"}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="py-10 text-center">
+                  <p className="text-muted-foreground">
+                    No images uploaded yet.
+                  </p>
 
-        {/* <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Button
-            type="button"
-            onClick={() => cameraInputRef.current.click()}
-          >
-            <Camera className="mr-2 h-4 w-4" />
-            Take Photo
-          </Button>
-
-          <Button
-            variant="outline"
-            type="button"
-            onClick={() => galleryInputRef.current.click()}
-          >
-            <ImagePlus className="mr-2 h-4 w-4" />
-            Choose from Gallery
-          </Button>
-        </div> */}
-
-        {/* Image Preview */}
-
-        {images.length > 0 && (
-          <>
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium">
-                Selected Images ({images.length})
-              </h4>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-              {images.map((img, index) => (
-                <div
-                  key={index}
-                  className="relative overflow-hidden rounded-lg border"
-                >
-                  <img
-                    src={img.preview}
-                    alt="preview"
-                    className="h-36 w-full object-cover"
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageSelect}
                   />
 
-                  <button
-                    type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute right-2 top-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
+                  <Button
+                    className="mt-4"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isImageLoading}
                   >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                    {isImageLoading ? " Uploading....." : "Upload Images"}
+                  </Button>
                 </div>
-              ))}
-            </div>
+              )}
 
-            <Button
-              className="w-full"
-              onClick={handleUpload}
-            >
-              Upload Face Images
-            </Button>
-          </>
-        )}
+            </TabsContent>
 
-        <p className="text-center text-xs text-muted-foreground">
-          Upload <strong>3–5 clear photos</strong> of your face from different
-          angles.
-          {/* On mobile, tap <strong>Take Photo</strong> to open your camera
-          or <strong>Choose from Gallery</strong> to select existing photos. */}
-        </p>
-      </CardContent>
-    </Card>
+            {/* Embedding */}
+            <TabsContent value="embedding">
+
+              <div className="space-y-5">
+
+                <div className="rounded-lg border p-4">
+
+                  <div className="flex justify-between">
+
+                    <span>Status</span>
+
+                    <Badge
+                      variant={
+                        student.hasEmbeddings
+                          ? "success"
+                          : "warning"
+                      }
+                    >
+                      {student.hasEmbeddings
+                        ? "Registered"
+                        : "Pending"}
+                    </Badge>
+
+                  </div>
+
+                  <div className="mt-4 flex justify-between">
+
+                    <span>Point ID</span>
+
+                    <span className="font-medium">
+                      {student.pointId ?? "-"}
+                    </span>
+
+                  </div>
+
+                </div>
+
+                {!student.hasImages && (
+                  <Button disabled>
+                    Upload Images First
+                  </Button>
+                )}
+
+                {student.hasImages &&
+                  !student.hasEmbeddings && (
+                    <Button
+                      onClick={registerEmbeddings}
+                      disabled={isImageLoading}>
+                      {isImageLoading ? "Registering" : "Register Embeddings"}
+                    </Button>
+                  )}
+
+                {student.hasImages &&
+                  student.hasEmbeddings && (
+                    <div className="flex gap-3">
+
+                      <Button
+                        onClick={registerEmbeddings}
+                        disabled={isImageLoading}>
+                        {isImageLoading ? "Regenerating" : "Regenerate Embeddings"}
+                      </Button>
+
+                      {/* <Button variant="outline" onClick={deleteEmbeddings}>
+                            {isDeleting ? "Deleting..." : "Delete Embeddings"}
+                          </Button> */}
+
+                    </div>
+                  )}
+
+              </div>
+
+            </TabsContent>
+
+          </Tabs>
+
+        </CardContent>
+      </Card >
+    </>
   );
 }

@@ -93,7 +93,7 @@ export default function StudentSettings() {
         </CardContent>
       </Card>
 
-      <Card>
+      {/* <Card>
         <CardHeader><CardTitle>Notification preferences</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           {['Low attendance alerts', 'Session reminders', 'Weekly summary email'].map((label, i) => (
@@ -103,7 +103,7 @@ export default function StudentSettings() {
             </div>
           ))}
         </CardContent>
-      </Card>
+      </Card> */}
 
       <Card>
         <CardHeader>

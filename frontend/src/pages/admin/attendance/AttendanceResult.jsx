@@ -33,21 +33,27 @@ export default function AttendanceResult() {
 
   const fetchSession = async () => {
     try {
+      setIsLoading(true)
       const response = await handlefetchAttendanceResult(id);
       console.log('Fetched session data:', response);
       setSession(response);
       // setResult(response.data);
     } catch (error) {
       console.error('Error fetching session data:', error);
+    } finally {
+      setIsLoading(false)
     }
   };
   const fetchStudents = async (id) => {
     try {
+      setIsLoading(true)
       const response = await handleFetchStudentsBySessionId(id);
       console.log("handleFetchStudentsBySessionId Rsponse: ", response)
       setApiResponse(response);
     } catch (error) {
       console.error(error)
+    } finally {
+      setIsLoading(false)
     }
   }
   const handleDelete = async () => {
@@ -68,12 +74,15 @@ export default function AttendanceResult() {
   }
   const handleAction = async (studentData) => {
     try {
+      setIsLoading(true)
       console.log("Mark Action Data: ", studentData)
       const response = await handleMarkAction(studentData);
       console.log("Handle Action Assign response:", response);
       fetchStudents(id)
     } catch (error) {
       console.error(error)
+    } finally {
+      setIsLoading(false)
     }
   }
   useEffect(() => {
@@ -84,15 +93,15 @@ export default function AttendanceResult() {
     }
   }, [id], session);
 
-  if (!session) {
-    return <EmptyState title="Session not found" action={<Link to="/admin/attendance/sessions"><Button>Back to sessions</Button></Link>} />
-  }
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
       </div>
     );
+  }
+  if (!session && !isLoading) {
+    return <EmptyState title="Session not found" action={<Link to="/admin/attendance/sessions"><Button>Back to sessions</Button></Link>} />
   }
   const faces = detectedFacesForSession(id)
   const recognized = faces.filter((f) => f.status === 'recognized')
@@ -113,9 +122,9 @@ export default function AttendanceResult() {
           <span className="text-sm text-muted-foreground">{session.startTime} - {session.endTime},</span> <span className="text-sm ">{session.status}</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" onClick={() => exportReport('PDF')}>
+          {/* <Button variant="outline" onClick={() => exportReport('PDF')}>
             <Download className="h-4 w-4" /> PDF
-          </Button>
+          </Button> */}
           <Button
             variant="outline"
             onClick={() => navigate('/admin/recognition/' + session.id)}

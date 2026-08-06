@@ -67,8 +67,6 @@ export default function AiRecognition() {
           "isFirstImage": !hasUploadedImage,
           "adminId": adminId,
           "totalStudents": totalStudents,
-          // latitude,
-          // longitude,
         }
         console.log("Payload: ", payload)
         setLoadingMessage("Generating Embedding And Finding Students  ...")
