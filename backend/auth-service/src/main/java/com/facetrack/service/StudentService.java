@@ -100,7 +100,7 @@ public class StudentService {
 
 	public ResponseEntity<ApiResponse<RegisterStudentsResponse>> importStudents(MultipartFile file,
 			HttpServletRequest request) {
-//		System.out.println("In importStudents Service");
+		System.out.println("In importStudents Service");
 		List<StudentImportDTO> students = null;
 		Cookie[] cookies = request.getCookies();
 		String accessToken = null;

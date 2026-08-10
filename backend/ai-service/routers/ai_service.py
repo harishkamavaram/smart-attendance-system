@@ -137,7 +137,7 @@ async def identify_all_faces(request: FaceRequest,db: Session = Depends(get_db))
             f"{name} ({score:.2f})",
             (x1, max(y1 - 10, 20)),
             cv2.FONT_HERSHEY_SIMPLEX,
-            1.5,
+            0.6,
             color,
             2,
             )

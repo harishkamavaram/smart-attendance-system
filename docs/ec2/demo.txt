@@ -1,0 +1,39 @@
+docker pull qdrant/qdrant
+docker run -d --name qdrant -p 6333:6333 -p 6334:6334 -v qdrant_storage:/qdrant/storage qdrant/qdrant
+docker ps
+docker logs qdrant 
+
+
+================ EC2 =======================
+
+scp -i "C:\Users\HARISH\Downloads\smart-ec2-key.pem" "C:\Users\HARISH\Desktop\smart-attendance-system\backend\api-gateway\target\api-gateway-0.0.1-SNAPSHOT.jar" ec2-user@ec2-16-192-153-201.eu-north-1.compute.amazonaws.com:~/apps/
+
+scp -i "C:\Users\HARISH\Downloads\smart-ec2-key.pem" "C:\Users\HARISH\Desktop\smart-attendance-system\backend\service-registry\target\service-registry-0.0.1-SNAPSHOT.jar" ec2-user@ec2-16-192-153-201.eu-north-1.compute.amazonaws.com:~/apps/
+
+scp -i "C:\Users\HARISH\Downloads\smart-ec2-key.pem" "C:\Users\HARISH\Desktop\smart-attendance-system\backend\auth-service\target\auth-service-0.0.1-SNAPSHOT.jar" ec2-user@ec2-16-192-153-201.eu-north-1.compute.amazonaws.com:~/apps/
+
+scp -i "C:\Users\HARISH\Downloads\smart-ec2-key.pem" "C:\Users\HARISH\Desktop\smart-attendance-system\backend\attendance-service\target\attendence-service-0.0.1-SNAPSHOT.jar" ec2-user@ec2-16-192-153-201.eu-north-1.compute.amazonaws.com:~/apps/
+
+scp -i "C:\Users\HARISH\Downloads\smart-ec2-key.pem" "C:\Users\HARISH\Desktop\smart-attendance-system\backend\data-service\target\student-service-0.0.1-SNAPSHOT.jar" ec2-user@ec2-16-192-153-201.eu-north-1.compute.amazonaws.com:~/apps/
+
+------------------------------------------------
+
+nohup java -jar service-registry-0.0.1-SNAPSHOT.jar > service-registry.log 2>&1 &
+
+nohup java -jar auth-service-0.0.1-SNAPSHOT.jar > auth-service.log 2>&1 &
+
+nohup java -jar student-service-0.0.1-SNAPSHOT.jar > student-service.log 2>&1 &
+
+nohup java -jar attendence-service-0.0.1-SNAPSHOT.jar > attendance-service.log 2>&1 &
+
+nohup java -jar api-gateway-0.0.1-SNAPSHOT.jar > api-gateway.log 2>&1 &
+
+ps -ef | grep java
+-------------
+
+sudo dnf install nginx -y
+sudo systemctl enable nginx
+sudo systemctl start nginx
+sudo systemctl status nginx
+
+sudo nano /etc/nginx/nginx.conf

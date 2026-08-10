@@ -6,6 +6,4 @@ import com.smartattendance.attendance_service.model.SessionDetail;
 
 public interface SessionDetailRepository extends JpaRepository<SessionDetail, Long> {
 
-	
-	
 }

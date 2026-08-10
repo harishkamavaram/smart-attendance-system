@@ -41,7 +41,7 @@ export default function AdminDashboard() {
   }
   const statusPie = [
     { name: 'Present', value: info.present },
-    { name: 'Absent', value: (info.Absent / info.present) * 100 },
+    { name: 'Absent', value: info.Absent },
   ]
 
   useEffect(() => {

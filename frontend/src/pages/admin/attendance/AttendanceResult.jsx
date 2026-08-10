@@ -79,6 +79,7 @@ export default function AttendanceResult() {
       const response = await handleMarkAction(studentData);
       console.log("Handle Action Assign response:", response);
       fetchStudents(id)
+      fetchSession()
     } catch (error) {
       console.error(error)
     } finally {
