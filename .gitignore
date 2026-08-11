@@ -89,4 +89,5 @@ docker-data/
 # ========================================
 # Application Properties 
 # ========================================
-# **/application.properties
+**/application.properties
+docs
